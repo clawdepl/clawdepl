@@ -1,0 +1,206 @@
+name: Release
+
+on:
+  pull_request:
+    types: [labeled]
+
+jobs:
+  check-label:
+    name: Check Release Label
+    runs-on: ubuntu-latest
+    outputs:
+      should_release: ${{ steps.check.outputs.should_release }}
+      version: ${{ steps.check.outputs.version }}
+    steps:
+      - name: Check for release label
+        id: check
+        run: |
+          # Check if the label matches the pattern "release:x.y.z"
+          LABEL="${{ github.event.label.name }}"
+          if [[ "$LABEL" =~ ^release:([0-9]+\.[0-9]+\.[0-9]+)$ ]]; then
+            echo "should_release=true" >> $GITHUB_OUTPUT
+            echo "version=${BASH_REMATCH[1]}" >> $GITHUB_OUTPUT
+            echo "Release triggered for version ${BASH_REMATCH[1]}"
+          else
+            echo "should_release=false" >> $GITHUB_OUTPUT
+            echo "No release label found"
+          fi
+
+  build-binaries:
+    name: Build Binaries
+    needs: check-label
+    if: needs.check-label.outputs.should_release == 'true'
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        include:
+          - goos: linux
+            goarch: amd64
+          - goos: linux
+            goarch: arm64
+          - goos: darwin
+            goarch: amd64
+          - goos: darwin
+            goarch: arm64
+          - goos: windows
+            goarch: amd64
+          - goos: windows
+            goarch: arm64
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.21"
+
+      - name: Build binary
+        env:
+          GOOS: ${{ matrix.goos }}
+          GOARCH: ${{ matrix.goarch }}
+          VERSION: ${{ needs.check-label.outputs.version }}
+        run: |
+          EXT=""
+          if [ "$GOOS" = "windows" ]; then
+            EXT=".exe"
+          fi
+          
+          OUTPUT_DIR="dist/clawdpl_${VERSION}_${GOOS}_${GOARCH}"
+          mkdir -p "$OUTPUT_DIR"
+          
+          go build -ldflags "-s -w -X github.com/moltyverse/clawdpl/cmd.Version=${VERSION} -X github.com/moltyverse/clawdpl/cmd.Commit=${GITHUB_SHA::7}" \
+            -o "${OUTPUT_DIR}/clawdpl${EXT}" .
+          
+          # Create tarball
+          cd dist
+          tar -czf "clawdpl_${VERSION}_${GOOS}_${GOARCH}.tar.gz" "clawdpl_${VERSION}_${GOOS}_${GOARCH}"
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: binary-${{ matrix.goos }}-${{ matrix.goarch }}
+          path: dist/*.tar.gz
+
+  create-release:
+    name: Create GitHub Release
+    needs: [check-label, build-binaries]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download all artifacts
+        uses: actions/download-artifact@v4
+        with:
+          path: dist
+          pattern: binary-*
+          merge-multiple: true
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v1
+        with:
+          tag_name: v${{ needs.check-label.outputs.version }}
+          name: Release v${{ needs.check-label.outputs.version }}
+          draft: false
+          prerelease: false
+          files: dist/*.tar.gz
+          generate_release_notes: true
+
+  publish-npm:
+    name: Publish to npm
+    needs: [check-label, create-release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          registry-url: "https://registry.npmjs.org"
+
+      - name: Update version in package.json
+        run: |
+          cd npm
+          npm version ${{ needs.check-label.outputs.version }} --no-git-tag-version
+
+      - name: Publish to npm
+        run: |
+          cd npm
+          npm publish --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+
+  publish-pypi:
+    name: Publish to PyPI
+    needs: [check-label, create-release]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install build tools
+        run: pip install build twine
+
+      - name: Update version in pyproject.toml
+        run: |
+          cd python
+          sed -i "s/version = \".*\"/version = \"${{ needs.check-label.outputs.version }}\"/" pyproject.toml
+          # Also update __version__ in cli.py and __init__.py
+          sed -i "s/__version__ = \".*\"/__version__ = \"${{ needs.check-label.outputs.version }}\"/" clawdpl/cli.py
+          sed -i "s/__version__ = \".*\"/__version__ = \"${{ needs.check-label.outputs.version }}\"/" clawdpl/__init__.py
+
+      - name: Build package
+        run: |
+          cd python
+          python -m build
+
+      - name: Publish to PyPI
+        run: |
+          cd python
+          twine upload dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+
+  update-versions:
+    name: Update Version Files
+    needs: [check-label, publish-npm, publish-pypi]
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.head_ref }}
+
+      - name: Update all version references
+        run: |
+          VERSION="${{ needs.check-label.outputs.version }}"
+          
+          # Update npm package.json
+          cd npm
+          npm version $VERSION --no-git-tag-version
+          cd ..
+          
+          # Update Python pyproject.toml
+          sed -i "s/version = \".*\"/version = \"$VERSION\"/" python/pyproject.toml
+          sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" python/clawdpl/cli.py
+          sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" python/clawdpl/__init__.py
+          
+          # Update Go version
+          sed -i "s/Version = \".*\"/Version = \"$VERSION\"/" cmd/root.go
+
+      - name: Commit version updates
+        run: |
+          git config --local user.email "github-actions[bot]@users.noreply.github.com"
+          git config --local user.name "github-actions[bot]"
+          git add -A
+          git commit -m "chore: bump version to ${{ needs.check-label.outputs.version }}" || echo "No changes to commit"
+          git push

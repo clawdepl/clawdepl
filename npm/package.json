@@ -6,7 +6,8 @@
     "clawdpl": "./bin/clawdpl.js"
   },
   "scripts": {
-    "postinstall": "node ./bin/install.js"
+    "postinstall": "node ./bin/install.js",
+    "test": "node ./bin/clawdpl.js --version"
   },
   "keywords": [
     "openclaw",
@@ -14,7 +15,8 @@
     "agents",
     "orchestrator",
     "cli",
-    "moltyverse"
+    "moltyverse",
+    "clawdpl"
   ],
   "author": "Moltyverse",
   "license": "MIT",
@@ -37,5 +39,11 @@
   "cpu": [
     "x64",
     "arm64"
-  ]
+  ],
+  "files": [
+    "bin/",
+    "README.md",
+    "LICENSE"
+  ],
+  "preferGlobal": true
 }

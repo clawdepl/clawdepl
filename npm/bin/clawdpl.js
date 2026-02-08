@@ -10,27 +10,29 @@ const fs = require("fs");
  */
 function getBinaryPath() {
   const platform = os.platform();
-  const arch = os.arch();
-
   let binaryName = "clawdpl";
   if (platform === "win32") {
     binaryName += ".exe";
   }
 
-  // Check for binary in the package's bin directory
+  // 1. Check for binary in the same directory as this script (installed by postinstall)
   const localBinary = path.join(__dirname, binaryName);
   if (fs.existsSync(localBinary)) {
     return localBinary;
   }
 
-  // Check for binary in common installation locations
-  const platformArch = `${platform}-${arch}`;
-  const platformBinary = path.join(__dirname, "..", "bin", platformArch, binaryName);
-  if (fs.existsSync(platformBinary)) {
-    return platformBinary;
+  // 2. Check for development binary in project root
+  const devBinary = path.join(__dirname, "..", "..", binaryName);
+  if (fs.existsSync(devBinary)) {
+    return devBinary;
   }
 
-  // Fall back to PATH
+  // 3. Check for binary via CLAWDPL_BINARY_PATH env var (useful for testing)
+  if (process.env.CLAWDPL_BINARY_PATH && fs.existsSync(process.env.CLAWDPL_BINARY_PATH)) {
+    return process.env.CLAWDPL_BINARY_PATH;
+  }
+
+  // 4. Fall back to PATH lookup
   return binaryName;
 }
 
@@ -49,8 +51,17 @@ function run() {
   child.on("error", (err) => {
     if (err.code === "ENOENT") {
       console.error("Error: clawdpl binary not found.");
-      console.error("Please ensure the binary is installed correctly.");
-      console.error("You can also install from source: go install github.com/moltyverse/clawdpl@latest");
+      console.error("");
+      console.error("The binary was not bundled with this package and is not in your PATH.");
+      console.error("");
+      console.error("Install the binary using one of these methods:");
+      console.error("");
+      console.error("  # Install from source (requires Go 1.21+):");
+      console.error("  go install github.com/moltyverse/clawdpl@latest");
+      console.error("");
+      console.error("  # Or set CLAWDPL_BINARY_PATH to point to the binary:");
+      console.error("  export CLAWDPL_BINARY_PATH=/path/to/clawdpl");
+      console.error("");
       process.exit(1);
     }
     console.error("Error running clawdpl:", err.message);

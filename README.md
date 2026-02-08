@@ -4,6 +4,7 @@
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://go.dev/)
 [![npm](https://img.shields.io/npm/v/clawdpl?logo=npm)](https://www.npmjs.com/package/clawdpl)
 [![PyPI](https://img.shields.io/pypi/v/clawdpl?logo=python)](https://pypi.org/project/clawdpl/)
+[![CI](https://github.com/moltyverse/clawdpl/actions/workflows/ci.yml/badge.svg)](https://github.com/moltyverse/clawdpl/actions/workflows/ci.yml)
 
 Create and manage [OpenClaw](https://openclaw.io) AI Agent orchestrator instances on hosted infrastructure—instantly.
 
@@ -11,23 +12,39 @@ Create and manage [OpenClaw](https://openclaw.io) AI Agent orchestrator instance
 
 OpenClaw is an AI Agent orchestrator that enables you to deploy, configure, and scale intelligent agent workflows. With `clawdpl`, you can spin up new OpenClaw instances in seconds, manage deployments, and monitor your agent infrastructure from the command line.
 
+## Quick Start
+
+The fastest way to use clawdpl is with `npx` or `pipx`—no installation required:
+
+```bash
+# Using npx (Node.js)
+npx clawdpl init my-project
+
+# Using pipx (Python)
+pipx run clawdpl init my-project
+```
+
 ## Installation
 
-Choose your preferred installation method:
+### npx (No Install Required)
 
-### npm (Node.js)
+```bash
+npx clawdpl <command>
+```
+
+### pipx (No Install Required)
+
+```bash
+pipx run clawdpl <command>
+```
+
+### npm (Global Install)
 
 ```bash
 npm install -g clawdpl
 ```
 
-Or use directly with npx:
-
-```bash
-npx clawdpl init my-project
-```
-
-### pip (Python)
+### pip (Global Install)
 
 ```bash
 pip install clawdpl
@@ -44,10 +61,10 @@ go install github.com/moltyverse/clawdpl@latest
 ```bash
 git clone https://github.com/moltyverse/clawdpl.git
 cd clawdpl
-go build -o clawdpl .
+make build
 ```
 
-## Quick Start
+## Usage
 
 ```bash
 # Create a new OpenClaw project
@@ -101,11 +118,14 @@ clawdpl/
 │   └── api/               # OpenClaw API client
 ├── npm/                   # npm package wrapper
 ├── python/                # PyPI package wrapper
+├── scripts/               # Build and test scripts
+├── .github/workflows/     # CI/CD pipelines
 ├── main.go                # Entry point
+├── Makefile               # Build automation
 └── go.mod                 # Go module definition
 ```
 
-The CLI is built in Go for performance and cross-platform compatibility. The npm and PyPI packages are thin wrappers that download and execute the appropriate binary for your platform.
+The CLI is built in Go for performance and cross-platform compatibility. The npm and PyPI packages are thin wrappers that automatically download the appropriate binary for your platform.
 
 ## Development
 
@@ -114,18 +134,51 @@ The CLI is built in Go for performance and cross-platform compatibility. The npm
 - Go 1.21 or later
 - Node.js 16+ (for npm package development)
 - Python 3.8+ (for PyPI package development)
+- Make
 
 ### Building
 
 ```bash
 # Build the binary
-go build -o clawdpl .
-
-# Run tests
-go test ./...
+make build
 
 # Build for all platforms
-./scripts/build-all.sh
+make build-all
+
+# Create release archives
+make release
+```
+
+### Testing
+
+```bash
+# Run all tests
+make test
+
+# Test Go code
+make test-go
+
+# Test npm package locally
+make test-npm
+
+# Test Python package locally
+make test-python
+
+# Test npx execution
+make test-npx
+
+# Test pipx execution
+make test-pipx
+```
+
+### Local Development
+
+```bash
+# Build and copy binary to wrappers for local testing
+make dev
+
+# Clean development binaries
+make dev-clean
 ```
 
 ### Running Locally
@@ -135,8 +188,28 @@ go test ./...
 go run . --help
 
 # Or build and run
-go build -o clawdpl . && ./clawdpl --help
+make build && ./clawdpl --help
 ```
+
+## Releasing
+
+Releases are automated via GitHub Actions. To create a new release:
+
+1. Create a Pull Request with your changes
+2. Add a label in the format `release:X.Y.Z` (e.g., `release:1.0.0`)
+3. The workflow will automatically:
+   - Build binaries for all platforms
+   - Create a GitHub Release with the binaries
+   - Publish to npm
+   - Publish to PyPI
+   - Update version numbers in the codebase
+
+### Required Secrets
+
+For the release workflow to work, configure these secrets in your repository:
+
+- `NPM_TOKEN`: npm access token with publish permissions
+- `PYPI_TOKEN`: PyPI API token with upload permissions
 
 ## Contributing
 

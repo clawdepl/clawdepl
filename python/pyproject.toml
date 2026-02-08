@@ -18,7 +18,8 @@ keywords = [
     "agents",
     "orchestrator",
     "cli",
-    "moltyverse"
+    "moltyverse",
+    "clawdpl"
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -32,8 +33,12 @@ classifiers = [
     "Programming Language :: Python :: 3.10",
     "Programming Language :: Python :: 3.11",
     "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
     "Topic :: Software Development :: Build Tools",
     "Topic :: System :: Systems Administration",
+]
+dependencies = [
+    "httpx>=0.24.0",
 ]
 
 [project.scripts]
@@ -47,3 +52,10 @@ Issues = "https://github.com/moltyverse/clawdpl/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["clawdpl"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/clawdpl",
+    "/README.md",
+    "/LICENSE",
+]
