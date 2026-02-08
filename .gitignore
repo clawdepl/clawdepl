@@ -1,6 +1,6 @@
 # Binaries
-create-claw-app
-create-claw-app.exe
+/clawdpl
+/clawdpl.exe
 *.exe
 *.exe~
 *.dll

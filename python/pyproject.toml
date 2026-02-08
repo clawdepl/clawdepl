@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "create-claw-app"
+name = "clawdpl"
 version = "0.1.0"
 description = "Create and manage OpenClaw AI Agent orchestrator instances"
 readme = "README.md"
@@ -37,13 +37,13 @@ classifiers = [
 ]
 
 [project.scripts]
-create-claw-app = "create_claw_app.cli:main"
+clawdpl = "clawdpl.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/moltyverse/create-claw-app"
-Documentation = "https://github.com/moltyverse/create-claw-app#readme"
-Repository = "https://github.com/moltyverse/create-claw-app.git"
-Issues = "https://github.com/moltyverse/create-claw-app/issues"
+Homepage = "https://github.com/moltyverse/clawdpl"
+Documentation = "https://github.com/moltyverse/clawdpl#readme"
+Repository = "https://github.com/moltyverse/clawdpl.git"
+Issues = "https://github.com/moltyverse/clawdpl/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["create_claw_app"]
+packages = ["clawdpl"]

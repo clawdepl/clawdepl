@@ -6,13 +6,13 @@ const os = require("os");
 const fs = require("fs");
 
 /**
- * Get the path to the create-claw-app binary for the current platform
+ * Get the path to the clawdpl binary for the current platform
  */
 function getBinaryPath() {
   const platform = os.platform();
   const arch = os.arch();
 
-  let binaryName = "create-claw-app";
+  let binaryName = "clawdpl";
   if (platform === "win32") {
     binaryName += ".exe";
   }
@@ -35,7 +35,7 @@ function getBinaryPath() {
 }
 
 /**
- * Run the create-claw-app binary with the provided arguments
+ * Run the clawdpl binary with the provided arguments
  */
 function run() {
   const binaryPath = getBinaryPath();
@@ -48,12 +48,12 @@ function run() {
 
   child.on("error", (err) => {
     if (err.code === "ENOENT") {
-      console.error("Error: create-claw-app binary not found.");
+      console.error("Error: clawdpl binary not found.");
       console.error("Please ensure the binary is installed correctly.");
-      console.error("You can also install from source: go install github.com/moltyverse/create-claw-app@latest");
+      console.error("You can also install from source: go install github.com/moltyverse/clawdpl@latest");
       process.exit(1);
     }
-    console.error("Error running create-claw-app:", err.message);
+    console.error("Error running clawdpl:", err.message);
     process.exit(1);
   });
 

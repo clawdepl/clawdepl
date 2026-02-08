@@ -1,34 +1,34 @@
-# create-claw-app
+# clawdpl
 
 Create and manage OpenClaw AI Agent orchestrator instances from the command line.
 
-This is the npm distribution of create-claw-app. For full documentation, see the [main repository](https://github.com/moltyverse/create-claw-app).
+This is the npm distribution of clawdpl. For full documentation, see the [main repository](https://github.com/moltyverse/clawdpl).
 
 ## Installation
 
 ```bash
-npm install -g create-claw-app
+npm install -g clawdpl
 ```
 
 Or use directly with npx:
 
 ```bash
-npx create-claw-app init my-project
+npx clawdpl init my-project
 ```
 
 ## Usage
 
 ```bash
 # Create a new OpenClaw project
-create-claw-app init my-project
+clawdpl init my-project
 
 # Deploy to hosted infrastructure
-create-claw-app deploy
+clawdpl deploy
 
 # Check instance status
-create-claw-app status
+clawdpl status
 ```
 
 ## License
 
-MIT - see [LICENSE](https://github.com/moltyverse/create-claw-app/blob/main/LICENSE)
+MIT - see [LICENSE](https://github.com/moltyverse/clawdpl/blob/main/LICENSE)

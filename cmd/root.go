@@ -15,18 +15,18 @@ var (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "create-claw-app",
+	Use:   "clawdpl",
 	Short: "Create and manage OpenClaw instances",
-	Long: `create-claw-app is a CLI tool for creating and managing OpenClaw 
+	Long: `clawdpl is a CLI tool for creating and managing OpenClaw 
 AI Agent orchestrator instances on hosted infrastructure.
 
 OpenClaw enables you to deploy, configure, and scale AI agent workflows
 with a single command.
 
 Get started:
-  create-claw-app init my-project    Create a new OpenClaw project
-  create-claw-app deploy             Deploy your project to the cloud
-  create-claw-app status             Check the status of your instances`,
+  clawdpl init my-project    Create a new OpenClaw project
+  clawdpl deploy             Deploy your project to the cloud
+  clawdpl status             Check the status of your instances`,
 	Version: fmt.Sprintf("%s (commit: %s)", Version, Commit),
 }
 

@@ -1,15 +1,15 @@
-# create-claw-app
+# clawdpl
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://go.dev/)
-[![npm](https://img.shields.io/npm/v/create-claw-app?logo=npm)](https://www.npmjs.com/package/create-claw-app)
-[![PyPI](https://img.shields.io/pypi/v/create-claw-app?logo=python)](https://pypi.org/project/create-claw-app/)
+[![npm](https://img.shields.io/npm/v/clawdpl?logo=npm)](https://www.npmjs.com/package/clawdpl)
+[![PyPI](https://img.shields.io/pypi/v/clawdpl?logo=python)](https://pypi.org/project/clawdpl/)
 
 Create and manage [OpenClaw](https://openclaw.io) AI Agent orchestrator instances on hosted infrastructure—instantly.
 
 ## What is OpenClaw?
 
-OpenClaw is an AI Agent orchestrator that enables you to deploy, configure, and scale intelligent agent workflows. With `create-claw-app`, you can spin up new OpenClaw instances in seconds, manage deployments, and monitor your agent infrastructure from the command line.
+OpenClaw is an AI Agent orchestrator that enables you to deploy, configure, and scale intelligent agent workflows. With `clawdpl`, you can spin up new OpenClaw instances in seconds, manage deployments, and monitor your agent infrastructure from the command line.
 
 ## Installation
 
@@ -18,49 +18,49 @@ Choose your preferred installation method:
 ### npm (Node.js)
 
 ```bash
-npm install -g create-claw-app
+npm install -g clawdpl
 ```
 
 Or use directly with npx:
 
 ```bash
-npx create-claw-app init my-project
+npx clawdpl init my-project
 ```
 
 ### pip (Python)
 
 ```bash
-pip install create-claw-app
+pip install clawdpl
 ```
 
 ### Go
 
 ```bash
-go install github.com/moltyverse/create-claw-app@latest
+go install github.com/moltyverse/clawdpl@latest
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/moltyverse/create-claw-app.git
-cd create-claw-app
-go build -o create-claw-app .
+git clone https://github.com/moltyverse/clawdpl.git
+cd clawdpl
+go build -o clawdpl .
 ```
 
 ## Quick Start
 
 ```bash
 # Create a new OpenClaw project
-create-claw-app init my-agent-project
+clawdpl init my-agent-project
 
 # Navigate to your project
 cd my-agent-project
 
 # Deploy to hosted infrastructure
-create-claw-app deploy
+clawdpl deploy
 
 # Check the status of your instance
-create-claw-app status
+clawdpl status
 ```
 
 ## Commands
@@ -74,7 +74,7 @@ create-claw-app status
 | `destroy` | Tear down an instance |
 | `config` | Manage configuration settings |
 
-Run `create-claw-app --help` for a complete list of commands and options.
+Run `clawdpl --help` for a complete list of commands and options.
 
 ## Configuration
 
@@ -95,7 +95,7 @@ default_region: us-east-1
 ## Architecture
 
 ```
-create-claw-app/
+clawdpl/
 ├── cmd/                    # CLI commands (Cobra)
 ├── internal/
 │   └── api/               # OpenClaw API client
@@ -119,7 +119,7 @@ The CLI is built in Go for performance and cross-platform compatibility. The npm
 
 ```bash
 # Build the binary
-go build -o create-claw-app .
+go build -o clawdpl .
 
 # Run tests
 go test ./...
@@ -135,7 +135,7 @@ go test ./...
 go run . --help
 
 # Or build and run
-go build -o create-claw-app . && ./create-claw-app --help
+go build -o clawdpl . && ./clawdpl --help
 ```
 
 ## Contributing
@@ -170,8 +170,8 @@ docs: update installation instructions
 ## Support
 
 - **Documentation**: [docs.openclaw.io](https://docs.openclaw.io)
-- **Issues**: [GitHub Issues](https://github.com/moltyverse/create-claw-app/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/moltyverse/create-claw-app/discussions)
+- **Issues**: [GitHub Issues](https://github.com/moltyverse/clawdpl/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/moltyverse/clawdpl/discussions)
 
 ## License
 

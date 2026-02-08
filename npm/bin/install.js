@@ -7,7 +7,7 @@ const os = require("os");
 const { execSync } = require("child_process");
 
 const VERSION = require("../package.json").version;
-const REPO = "moltyverse/create-claw-app";
+const REPO = "moltyverse/clawdpl";
 
 /**
  * Get platform-specific binary name
@@ -35,8 +35,8 @@ function getPlatformInfo() {
   }
 
   const ext = platform === "win32" ? ".exe" : "";
-  const binaryName = `create-claw-app${ext}`;
-  const archiveName = `create-claw-app_${VERSION}_${osPlatform}_${osArch}.tar.gz`;
+  const binaryName = `clawdpl${ext}`;
+  const archiveName = `clawdpl_${VERSION}_${osPlatform}_${osArch}.tar.gz`;
 
   return { platform: osPlatform, arch: osArch, binaryName, archiveName };
 }
@@ -52,11 +52,11 @@ async function downloadBinary() {
 
   // Skip if binary already exists
   if (fs.existsSync(binaryPath)) {
-    console.log("create-claw-app binary already installed.");
+    console.log("clawdpl binary already installed.");
     return;
   }
 
-  console.log(`Downloading create-claw-app v${VERSION}...`);
+  console.log(`Downloading clawdpl v${VERSION}...`);
   console.log(`URL: ${downloadUrl}`);
 
   try {
@@ -64,16 +64,16 @@ async function downloadBinary() {
     console.log("");
     console.log("Note: Pre-built binaries are not yet available.");
     console.log("Please install from source:");
-    console.log("  go install github.com/moltyverse/create-claw-app@latest");
+    console.log("  go install github.com/moltyverse/clawdpl@latest");
     console.log("");
     console.log("Or build locally:");
-    console.log("  git clone https://github.com/moltyverse/create-claw-app.git");
-    console.log("  cd create-claw-app");
-    console.log("  go build -o create-claw-app .");
+    console.log("  git clone https://github.com/moltyverse/clawdpl.git");
+    console.log("  cd clawdpl");
+    console.log("  go build -o clawdpl .");
     console.log("");
   } catch (err) {
     console.error("Failed to download binary:", err.message);
-    console.error("Please install from source: go install github.com/moltyverse/create-claw-app@latest");
+    console.error("Please install from source: go install github.com/moltyverse/clawdpl@latest");
   }
 }
 

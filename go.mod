@@ -1,4 +1,4 @@
-module github.com/moltyverse/create-claw-app
+module github.com/moltyverse/clawdpl
 
 go 1.25.7
 

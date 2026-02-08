@@ -1,9 +1,9 @@
 {
-  "name": "create-claw-app",
+  "name": "clawdpl",
   "version": "0.1.0",
   "description": "Create and manage OpenClaw AI Agent orchestrator instances",
   "bin": {
-    "create-claw-app": "./bin/create-claw-app.js"
+    "clawdpl": "./bin/clawdpl.js"
   },
   "scripts": {
     "postinstall": "node ./bin/install.js"
@@ -20,12 +20,12 @@
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/moltyverse/create-claw-app.git"
+    "url": "git+https://github.com/moltyverse/clawdpl.git"
   },
   "bugs": {
-    "url": "https://github.com/moltyverse/create-claw-app/issues"
+    "url": "https://github.com/moltyverse/clawdpl/issues"
   },
-  "homepage": "https://github.com/moltyverse/create-claw-app#readme",
+  "homepage": "https://github.com/moltyverse/clawdpl#readme",
   "engines": {
     "node": ">=16.0.0"
   },

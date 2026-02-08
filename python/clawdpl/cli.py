@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-CLI wrapper for create-claw-app.
+CLI wrapper for clawdpl.
 
-This module provides a thin wrapper around the create-claw-app Go binary,
+This module provides a thin wrapper around the clawdpl Go binary,
 allowing it to be invoked via Python/pip installation.
 """
 
@@ -17,13 +17,13 @@ from pathlib import Path
 def get_binary_name() -> str:
     """Get the platform-specific binary name."""
     if platform.system() == "Windows":
-        return "create-claw-app.exe"
-    return "create-claw-app"
+        return "clawdpl.exe"
+    return "clawdpl"
 
 
 def find_binary() -> str | None:
     """
-    Find the create-claw-app binary.
+    Find the clawdpl binary.
     
     Searches in the following order:
     1. Same directory as this script
@@ -55,22 +55,22 @@ def main() -> int:
     """
     Main entry point for the CLI wrapper.
     
-    Finds and executes the create-claw-app binary with all provided arguments.
+    Finds and executes the clawdpl binary with all provided arguments.
     """
     binary_path = find_binary()
     
     if binary_path is None:
-        print("Error: create-claw-app binary not found.", file=sys.stderr)
+        print("Error: clawdpl binary not found.", file=sys.stderr)
         print("", file=sys.stderr)
         print("Please install the binary using one of these methods:", file=sys.stderr)
         print("", file=sys.stderr)
         print("  # Install from source (requires Go):", file=sys.stderr)
-        print("  go install github.com/moltyverse/create-claw-app@latest", file=sys.stderr)
+        print("  go install github.com/moltyverse/clawdpl@latest", file=sys.stderr)
         print("", file=sys.stderr)
         print("  # Or build locally:", file=sys.stderr)
-        print("  git clone https://github.com/moltyverse/create-claw-app.git", file=sys.stderr)
-        print("  cd create-claw-app", file=sys.stderr)
-        print("  go build -o create-claw-app .", file=sys.stderr)
+        print("  git clone https://github.com/moltyverse/clawdpl.git", file=sys.stderr)
+        print("  cd clawdpl", file=sys.stderr)
+        print("  go build -o clawdpl .", file=sys.stderr)
         print("", file=sys.stderr)
         return 1
     
