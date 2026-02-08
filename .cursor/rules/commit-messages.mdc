@@ -1,0 +1,70 @@
+---
+description: Guidelines for writing clean, professional commit messages
+globs: *
+alwaysApply: true
+---
+
+# Commit Message Guidelines
+
+## Rules
+
+1. **Never mention AI tools** - Do not reference Cursor, Claude, Copilot, ChatGPT, or any AI assistant in commit messages. Commits should read as if written by a human developer.
+
+2. **Use conventional commit format**:
+   ```
+   <type>(<scope>): <subject>
+   
+   <body>
+   
+   <footer>
+   ```
+
+3. **Types**:
+   - `feat`: New feature
+   - `fix`: Bug fix
+   - `docs`: Documentation changes
+   - `style`: Code style changes (formatting, semicolons, etc.)
+   - `refactor`: Code refactoring without feature changes
+   - `perf`: Performance improvements
+   - `test`: Adding or updating tests
+   - `build`: Build system or dependency changes
+   - `ci`: CI/CD configuration changes
+   - `chore`: Maintenance tasks
+
+4. **Subject line**:
+   - Use imperative mood ("add feature" not "added feature")
+   - Keep under 50 characters
+   - No period at the end
+   - Capitalize the first letter
+
+5. **Body** (optional but recommended for non-trivial changes):
+   - Explain *what* and *why*, not *how*
+   - Wrap at 72 characters
+   - Separate from subject with a blank line
+
+6. **Footer** (optional):
+   - Reference issues: `Closes #123`, `Fixes #456`
+   - Breaking changes: `BREAKING CHANGE: description`
+
+## Examples
+
+Good:
+```
+feat(cli): add instance creation command
+
+Implement the 'create' subcommand that provisions a new OpenClaw
+instance on the hosted infrastructure. Supports custom naming and
+region selection.
+
+Closes #42
+```
+
+Bad:
+```
+Added stuff with Claude's help
+```
+
+Bad:
+```
+cursor helped me fix the bug
+```
