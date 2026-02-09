@@ -6,6 +6,7 @@ import (
 	"strings"
 
 	"github.com/charmbracelet/bubbles/spinner"
+	"github.com/charmbracelet/bubbles/textarea"
 	"github.com/charmbracelet/bubbles/textinput"
 	tea "github.com/charmbracelet/bubbletea"
 	"github.com/charmbracelet/lipgloss"
@@ -58,6 +59,8 @@ const (
 type NewInstanceModel struct {
 	step         step
 	inputs       []textinput.Model
+	tokenInput   textarea.Model
+	purposeInput textarea.Model
 	spinner      spinner.Model
 	result       NewInstanceResult
 	initialName  string
@@ -88,7 +91,7 @@ func WithProvisionCallback(fn func(name, token, purpose string) error) NewInstan
 func NewNewInstanceModel(opts ...NewInstanceOption) NewInstanceModel {
 	m := NewInstanceModel{
 		step:   stepName,
-		inputs: make([]textinput.Model, 3),
+		inputs: make([]textinput.Model, 1),
 	}
 
 	// Apply options
@@ -106,21 +109,23 @@ func NewNewInstanceModel(opts ...NewInstanceOption) NewInstanceModel {
 	}
 	m.inputs[0] = nameInput
 
-	// Claude token input
-	tokenInput := textinput.New()
-	tokenInput.Placeholder = "sk-ant-..."
-	tokenInput.CharLimit = 256
-	tokenInput.Width = 60
-	tokenInput.EchoMode = textinput.EchoPassword
-	tokenInput.EchoCharacter = '•'
-	m.inputs[1] = tokenInput
+	// Claude token input (use textarea for better paste/wrap support)
+	tokenInput := textarea.New()
+	tokenInput.Placeholder = "sk-ant-api03-..."
+	tokenInput.CharLimit = 512
+	tokenInput.SetWidth(70)
+	tokenInput.SetHeight(3)
+	tokenInput.ShowLineNumbers = false
+	m.tokenInput = tokenInput
 
-	// Purpose input
-	purposeInput := textinput.New()
-	purposeInput.Placeholder = "Customer support automation"
-	purposeInput.CharLimit = 256
-	purposeInput.Width = 60
-	m.inputs[2] = purposeInput
+	// Purpose input (textarea for multiline)
+	purposeInput := textarea.New()
+	purposeInput.Placeholder = "A helpful assistant that..."
+	purposeInput.CharLimit = 1024
+	purposeInput.SetWidth(60)
+	purposeInput.SetHeight(4)
+	purposeInput.ShowLineNumbers = false
+	m.purposeInput = purposeInput
 
 	// Spinner
 	s := spinner.New()
@@ -159,7 +164,19 @@ func (m NewInstanceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m, tea.Quit
 
 		case "enter":
+			// Enter always submits
 			return m.handleEnter()
+
+		case "ctrl+enter":
+			// Ctrl+Enter adds newline in textarea steps
+			if m.step == stepClaudeToken {
+				m.tokenInput.InsertString("\n")
+				return m, nil
+			}
+			if m.step == stepPurpose {
+				m.purposeInput.InsertString("\n")
+				return m, nil
+			}
 
 		case "tab", "shift+tab":
 			// Don't allow tab navigation, just use enter to proceed
@@ -192,9 +209,9 @@ func (m NewInstanceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	case stepName:
 		m.inputs[0], cmd = m.inputs[0].Update(msg)
 	case stepClaudeToken:
-		m.inputs[1], cmd = m.inputs[1].Update(msg)
+		m.tokenInput, cmd = m.tokenInput.Update(msg)
 	case stepPurpose:
-		m.inputs[2], cmd = m.inputs[2].Update(msg)
+		m.purposeInput, cmd = m.purposeInput.Update(msg)
 	}
 
 	return m, cmd
@@ -210,28 +227,28 @@ func (m NewInstanceModel) handleEnter() (tea.Model, tea.Cmd) {
 		m.result.Name = name
 		m.step = stepClaudeToken
 		m.inputs[0].Blur()
-		m.inputs[1].Focus()
-		return m, textinput.Blink
+		m.tokenInput.Focus()
+		return m, textarea.Blink
 
 	case stepClaudeToken:
-		token := strings.TrimSpace(m.inputs[1].Value())
+		token := strings.TrimSpace(m.tokenInput.Value())
 		if token == "" {
 			return m, nil
 		}
 		m.result.ClaudeToken = token
 		m.step = stepPurpose
-		m.inputs[1].Blur()
-		m.inputs[2].Focus()
-		return m, textinput.Blink
+		m.tokenInput.Blur()
+		m.purposeInput.Focus()
+		return m, textarea.Blink
 
 	case stepPurpose:
-		purpose := strings.TrimSpace(m.inputs[2].Value())
+		purpose := strings.TrimSpace(m.purposeInput.Value())
 		if purpose == "" {
 			return m, nil
 		}
 		m.result.Purpose = purpose
 		m.step = stepProvisioning
-		m.inputs[2].Blur()
+		m.purposeInput.Blur()
 
 		// Start provisioning
 		return m, tea.Batch(
@@ -274,19 +291,21 @@ func (m NewInstanceModel) View() string {
 		b.WriteString("\n")
 		b.WriteString(promptStyle.Render("Enter your Claude API token:"))
 		b.WriteString("\n\n")
-		b.WriteString(m.inputs[1].View())
+		b.WriteString(m.tokenInput.View())
 		b.WriteString("\n\n")
-		b.WriteString(blurredStyle.Render("Your token is stored securely. Press Enter to continue."))
+		b.WriteString(blurredStyle.Render("Run 'claude setup-token' in a new terminal to get your token."))
+		b.WriteString("\n")
+		b.WriteString(blurredStyle.Render("Your token is stored securely. Enter to submit, Ctrl+Enter for new line."))
 
 	case stepPurpose:
 		b.WriteString(m.renderCompletedStep("Name", m.result.Name))
 		b.WriteString(m.renderCompletedStep("Token", "••••••••"))
 		b.WriteString("\n")
-		b.WriteString(promptStyle.Render("What is the purpose of this instance?"))
+		b.WriteString(promptStyle.Render("What is my purpose? Who am I?"))
 		b.WriteString("\n\n")
-		b.WriteString(m.inputs[2].View())
+		b.WriteString(m.purposeInput.View())
 		b.WriteString("\n\n")
-		b.WriteString(blurredStyle.Render("Press Enter to create your instance."))
+		b.WriteString(blurredStyle.Render("Enter to submit, Ctrl+Enter for new line."))
 
 	case stepProvisioning:
 		b.WriteString(m.renderCompletedStep("Name", m.result.Name))
