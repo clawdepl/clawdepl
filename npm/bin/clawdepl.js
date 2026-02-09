@@ -17,18 +17,18 @@ function getBinaryPath() {
 
   // 1. Check for binary in the same directory as this script (installed by postinstall)
   const localBinary = path.join(__dirname, binaryName);
-  if (fs.existsSync(localBinary)) {
+  if (fs.existsSync(localBinary) && fs.statSync(localBinary).isFile()) {
     return localBinary;
   }
 
   // 2. Check for development binary in project root
   const devBinary = path.join(__dirname, "..", "..", binaryName);
-  if (fs.existsSync(devBinary)) {
+  if (fs.existsSync(devBinary) && fs.statSync(devBinary).isFile()) {
     return devBinary;
   }
 
   // 3. Check for binary via CLAWDEPL_BINARY_PATH env var (useful for testing)
-  if (process.env.CLAWDEPL_BINARY_PATH && fs.existsSync(process.env.CLAWDEPL_BINARY_PATH)) {
+  if (process.env.CLAWDEPL_BINARY_PATH && fs.existsSync(process.env.CLAWDEPL_BINARY_PATH) && fs.statSync(process.env.CLAWDEPL_BINARY_PATH).isFile()) {
     return process.env.CLAWDEPL_BINARY_PATH;
   }
 
