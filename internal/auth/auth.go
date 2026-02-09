@@ -6,15 +6,19 @@ import (
 	"context"
 	"crypto/rand"
 	"encoding/hex"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net"
 	"net/http"
+	"net/url"
 	"os"
 	"os/exec"
 	"runtime"
 	"strings"
 	"time"
 
+	"github.com/clawdepl/clawdepl/internal/buildinfo"
 	"github.com/clawdepl/clawdepl/internal/config"
 )
 
@@ -22,7 +26,7 @@ const (
 	// AuthBaseURL is the base URL for authentication
 	AuthBaseURL = "https://clawdepl.dev"
 	// AuthPath is the path for CLI authentication
-	AuthPath = "/cli/auth"
+	AuthPath = "/auth/cli"
 	// CallbackPath is the path for OAuth callback
 	CallbackPath = "/callback"
 )
@@ -54,6 +58,100 @@ func openBrowser(url string) error {
 	return cmd.Start()
 }
 
+// ValidateToken validates a token against the backend and returns user info
+func ValidateToken(ctx context.Context, token string) (*config.Credentials, error) {
+	// Call Convex /api/users/verify with Bearer token
+	verifyURL := fmt.Sprintf("%s/api/users/verify", buildinfo.ConvexEndpoint)
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodGet, verifyURL, nil)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+
+	req.Header.Set("Authorization", "Bearer "+token)
+	req.Header.Set("Content-Type", "application/json")
+
+	client := &http.Client{Timeout: 30 * time.Second}
+	resp, err := client.Do(req)
+	if err != nil {
+		return nil, fmt.Errorf("failed to validate token: %w", err)
+	}
+	defer resp.Body.Close()
+
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response: %w", err)
+	}
+
+	if resp.StatusCode != http.StatusOK {
+		// Try to parse error message
+		var errResp struct {
+			Error string `json:"error"`
+		}
+		if json.Unmarshal(body, &errResp) == nil && errResp.Error != "" {
+			return nil, fmt.Errorf("token validation failed: %s", errResp.Error)
+		}
+		return nil, fmt.Errorf("token validation failed (status %d)", resp.StatusCode)
+	}
+
+	// Parse successful response
+	var verifyResp struct {
+		User struct {
+			UserID   string `json:"userId"`
+			Username string `json:"username"`
+			Type     string `json:"type"`
+		} `json:"user"`
+	}
+
+	if err := json.Unmarshal(body, &verifyResp); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	creds := &config.Credentials{
+		AccessToken: token,
+		User: &config.User{
+			ID:    verifyResp.User.UserID,
+			Email: verifyResp.User.Username, // Username might be email
+			Name:  verifyResp.User.Username,
+		},
+	}
+
+	return creds, nil
+}
+
+// LoginWithToken performs login using a pre-obtained token
+func LoginWithToken(ctx context.Context, token string) (*config.Credentials, error) {
+	token = strings.TrimSpace(token)
+	if token == "" {
+		return nil, fmt.Errorf("no token provided")
+	}
+
+	// Validate token and get user info
+	creds, err := ValidateToken(ctx, token)
+	if err != nil {
+		// If validation fails, still allow storing the token
+		// (the backend might not have the verify endpoint yet)
+		fmt.Printf("Warning: Could not validate token: %v\n", err)
+		fmt.Printf("Storing token anyway. It will be validated on first API call.\n")
+
+		creds = &config.Credentials{
+			AccessToken: token,
+			User: &config.User{
+				ID:    "unknown",
+				Email: "unknown",
+				Name:  "Unknown User",
+			},
+		}
+	}
+
+	// Save credentials
+	if err := config.SaveCredentials(creds); err != nil {
+		return nil, fmt.Errorf("failed to save credentials: %w", err)
+	}
+
+	return creds, nil
+}
+
 // LoginWithBrowser performs OAuth login by opening a browser
 func LoginWithBrowser(ctx context.Context) (*config.Credentials, error) {
 	// Find an available port
@@ -71,8 +169,8 @@ func LoginWithBrowser(ctx context.Context) (*config.Credentials, error) {
 		return nil, fmt.Errorf("failed to generate state: %w", err)
 	}
 
-	// Build auth URL
-	authURL := fmt.Sprintf("%s%s?callback=%s&state=%s", AuthBaseURL, AuthPath, callbackURL, state)
+	// Build auth URL with URL-encoded callback
+	authURL := fmt.Sprintf("%s%s?callback=%s&state=%s", AuthBaseURL, AuthPath, url.QueryEscape(callbackURL), state)
 
 	fmt.Printf("Opening browser to authenticate...\n")
 	fmt.Printf("If the browser doesn't open, visit:\n  %s\n\n", authURL)
@@ -85,41 +183,63 @@ func LoginWithBrowser(ctx context.Context) (*config.Credentials, error) {
 	credsChan := make(chan *config.Credentials, 1)
 	errChan := make(chan error, 1)
 
-	server := &http.Server{}
-	http.HandleFunc(CallbackPath, func(w http.ResponseWriter, r *http.Request) {
-		// In a real implementation, this would validate the state and exchange the code
-		// For now, we'll mock the response
-		receivedState := r.URL.Query().Get("state")
+	// Create a new ServeMux to avoid conflicts with default mux
+	mux := http.NewServeMux()
+	server := &http.Server{Handler: mux}
+
+	mux.HandleFunc(CallbackPath, func(w http.ResponseWriter, r *http.Request) {
+		query := r.URL.Query()
+
+		// Validate state to prevent CSRF
+		receivedState := query.Get("state")
 		if receivedState != state {
-			errChan <- fmt.Errorf("state mismatch")
-			http.Error(w, "Invalid state", http.StatusBadRequest)
+			errChan <- fmt.Errorf("state mismatch: expected %s, got %s", state, receivedState)
+			http.Error(w, "Invalid state - possible CSRF attack", http.StatusBadRequest)
 			return
 		}
 
-		// Mock: In reality, we'd exchange the code for tokens here
-		// For now, create mock credentials
-		creds := &config.Credentials{
-			AccessToken:  "mock_access_token_" + state[:8],
-			RefreshToken: "mock_refresh_token_" + state[:8],
-			User: &config.User{
-				ID:    "user_" + state[:8],
-				Email: "user@example.com",
-				Name:  "Demo User",
-			},
-			ExpiresAt: time.Now().Add(24 * time.Hour),
+		// Parse token and user info from query params
+		token := query.Get("token")
+		if token == "" {
+			errChan <- fmt.Errorf("no token received in callback")
+			http.Error(w, "No token received", http.StatusBadRequest)
+			return
 		}
 
+		userId := query.Get("userId")
+		email := query.Get("email")
+		name := query.Get("name")
+
+		// Use email as fallback for name if not provided
+		if name == "" {
+			name = email
+		}
+		if name == "" {
+			name = "User"
+		}
+
+		creds := &config.Credentials{
+			AccessToken: token,
+			User: &config.User{
+				ID:    userId,
+				Email: email,
+				Name:  name,
+			},
+		}
+
+		// Serve success page
 		w.Header().Set("Content-Type", "text/html")
 		fmt.Fprintf(w, `<!DOCTYPE html>
 <html>
 <head><title>clawdepl - Login Successful</title></head>
 <body style="font-family: system-ui; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #1a1a2e;">
 <div style="text-align: center; color: #eee;">
-<h1>✓ Login Successful</h1>
+<h1 style="color: #4ade80;">✓ Login Successful</h1>
 <p>You can close this window and return to your terminal.</p>
+<p style="color: #888; font-size: 0.9em;">Logged in as %s</p>
 </div>
 </body>
-</html>`)
+</html>`, email)
 
 		credsChan <- creds
 	})
@@ -149,15 +269,10 @@ func LoginWithBrowser(ctx context.Context) (*config.Credentials, error) {
 
 // LoginWithoutBrowser performs login without opening a browser
 func LoginWithoutBrowser(ctx context.Context) (*config.Credentials, error) {
-	state, err := generateState()
-	if err != nil {
-		return nil, fmt.Errorf("failed to generate state: %w", err)
-	}
-
-	authURL := fmt.Sprintf("%s%s?state=%s", AuthBaseURL, AuthPath, state)
+	authURL := fmt.Sprintf("%s%s", AuthBaseURL, AuthPath)
 
 	fmt.Printf("Visit this URL to authenticate:\n\n  %s\n\n", authURL)
-	fmt.Printf("After authenticating, paste the token here: ")
+	fmt.Printf("After authenticating, copy the token and paste it here: ")
 
 	reader := bufio.NewReader(os.Stdin)
 	token, err := reader.ReadString('\n')
@@ -170,19 +285,8 @@ func LoginWithoutBrowser(ctx context.Context) (*config.Credentials, error) {
 		return nil, fmt.Errorf("no token provided")
 	}
 
-	// Mock: In reality, we'd validate the token with the server
-	creds := &config.Credentials{
-		AccessToken:  token,
-		RefreshToken: "mock_refresh_" + token[:8],
-		User: &config.User{
-			ID:    "user_" + token[:8],
-			Email: "user@example.com",
-			Name:  "Demo User",
-		},
-		ExpiresAt: time.Now().Add(24 * time.Hour),
-	}
-
-	return creds, nil
+	// Use LoginWithToken to validate and store
+	return LoginWithToken(ctx, token)
 }
 
 // LoginWithAPIKey performs login using an API key
