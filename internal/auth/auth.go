@@ -5,6 +5,7 @@ import (
 	"bufio"
 	"context"
 	"crypto/rand"
+	_ "embed"
 	"encoding/hex"
 	"encoding/json"
 	"fmt"
@@ -21,6 +22,9 @@ import (
 	"github.com/clawdepl/clawdepl/internal/buildinfo"
 	"github.com/clawdepl/clawdepl/internal/config"
 )
+
+//go:embed callback_success.html
+var callbackSuccessHTML string
 
 const (
 	// AuthBaseURL is the base URL for authentication
@@ -182,6 +186,7 @@ func LoginWithBrowser(ctx context.Context) (*config.Credentials, error) {
 	// Wait for callback
 	credsChan := make(chan *config.Credentials, 1)
 	errChan := make(chan error, 1)
+	stdinChan := make(chan string, 1)
 
 	// Create a new ServeMux to avoid conflicts with default mux
 	mux := http.NewServeMux()
@@ -227,19 +232,9 @@ func LoginWithBrowser(ctx context.Context) (*config.Credentials, error) {
 			},
 		}
 
-		// Serve success page
+		// Serve styled success page (HTML reads query params via JS)
 		w.Header().Set("Content-Type", "text/html")
-		fmt.Fprintf(w, `<!DOCTYPE html>
-<html>
-<head><title>clawdepl - Login Successful</title></head>
-<body style="font-family: system-ui; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #1a1a2e;">
-<div style="text-align: center; color: #eee;">
-<h1 style="color: #4ade80;">✓ Login Successful</h1>
-<p>You can close this window and return to your terminal.</p>
-<p style="color: #888; font-size: 0.9em;">Logged in as %s</p>
-</div>
-</body>
-</html>`, email)
+		w.Write([]byte(callbackSuccessHTML))
 
 		credsChan <- creds
 	})
@@ -250,11 +245,28 @@ func LoginWithBrowser(ctx context.Context) (*config.Credentials, error) {
 		}
 	}()
 
+	// Also listen for token paste from stdin (fallback if redirect doesn't work)
+	fmt.Printf("Or paste your token here and press Enter: ")
+	go func() {
+		reader := bufio.NewReader(os.Stdin)
+		token, err := reader.ReadString('\n')
+		if err == nil {
+			token = strings.TrimSpace(token)
+			if token != "" {
+				stdinChan <- token
+			}
+		}
+	}()
+
 	// Wait for result or timeout
 	select {
 	case creds := <-credsChan:
 		server.Shutdown(ctx)
 		return creds, nil
+	case token := <-stdinChan:
+		server.Shutdown(ctx)
+		// Validate and return credentials using the pasted token
+		return LoginWithToken(ctx, token)
 	case err := <-errChan:
 		server.Shutdown(ctx)
 		return nil, err

@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login Successful - clawdepl</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+      border-color: hsl(220 12% 14%);
+    }
+
+    :root {
+      --background: 220 16% 6%;
+      --foreground: 220 10% 90%;
+      --card: 220 14% 10%;
+      --primary: 217 91% 60%;
+      --secondary: 220 12% 15%;
+      --muted-foreground: 220 8% 45%;
+      --border: 220 12% 14%;
+      --warning: 38 70% 50%;
+    }
+
+    body {
+      font-family: 'Space Grotesk', system-ui, sans-serif;
+      background: hsl(var(--background));
+      color: hsl(var(--foreground));
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 1rem;
+      position: relative;
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    code, .font-mono {
+      font-family: 'JetBrains Mono', monospace;
+    }
+
+    .grid-pattern {
+      position: absolute;
+      inset: 0;
+      background-image: 
+        linear-gradient(hsl(var(--border) / 0.25) 1px, transparent 1px),
+        linear-gradient(90deg, hsl(var(--border) / 0.25) 1px, transparent 1px);
+      background-size: 80px 80px;
+      opacity: 0.1;
+      pointer-events: none;
+    }
+
+    .gradient-radial {
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse at 50% 0%, hsl(var(--primary) / 0.1) 0%, transparent 55%);
+      pointer-events: none;
+    }
+
+    .container {
+      position: relative;
+      z-index: 10;
+      width: 100%;
+      max-width: 32rem;
+    }
+
+    .bento-card {
+      border-radius: 1rem;
+      border: 1px solid hsl(var(--border));
+      background: hsl(var(--card) / 0.6);
+      backdrop-filter: blur(8px);
+      padding: 2rem;
+      transition: all 0.3s ease;
+    }
+
+    .header {
+      display: flex;
+      align-items: center;
+      gap: 0.75rem;
+      margin-bottom: 1.5rem;
+    }
+
+    .icon-container {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: 2.5rem;
+      height: 2.5rem;
+      border-radius: 0.75rem;
+      background: hsl(142 71% 45% / 0.1);
+    }
+
+    .icon {
+      width: 1.25rem;
+      height: 1.25rem;
+      color: hsl(142 71% 45%);
+    }
+
+    .header-content h1 {
+      font-size: 1.25rem;
+      font-weight: 700;
+      color: hsl(var(--foreground));
+      margin-bottom: 0.125rem;
+    }
+
+    .header-content p {
+      font-size: 0.875rem;
+      color: hsl(var(--muted-foreground));
+    }
+
+    .signed-in {
+      font-size: 0.875rem;
+      color: hsl(var(--muted-foreground));
+      margin-bottom: 1rem;
+    }
+
+    .signed-in span {
+      color: hsl(var(--foreground));
+      font-weight: 500;
+    }
+
+    .info-section {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+    }
+
+    .info-card {
+      border-radius: 0.75rem;
+      background: hsl(var(--secondary) / 0.5);
+      border: 1px solid hsl(var(--border));
+      padding: 1rem;
+    }
+
+    .info-label {
+      font-size: 0.75rem;
+      color: hsl(var(--muted-foreground));
+      margin-bottom: 0.5rem;
+      font-weight: 500;
+    }
+
+    .info-value {
+      font-size: 0.875rem;
+      color: hsl(var(--foreground));
+      word-break: break-all;
+    }
+
+    .token-card {
+      background: hsl(var(--secondary) / 0.3);
+    }
+
+    .token-value {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 0.875rem;
+      color: hsl(var(--primary));
+    }
+
+    .success-note {
+      text-align: center;
+      font-size: 0.75rem;
+      color: hsl(var(--muted-foreground));
+      margin-top: 1.5rem;
+    }
+  </style>
+</head>
+<body>
+  <div class="grid-pattern"></div>
+  <div class="gradient-radial"></div>
+  
+  <div class="container">
+    <div class="bento-card">
+      <div class="header">
+        <div class="icon-container">
+          <svg class="icon" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+        </div>
+        <div class="header-content">
+          <h1>Login Successful</h1>
+          <p>You can close this window and return to your terminal.</p>
+        </div>
+      </div>
+
+      <p class="signed-in">Signed in as <span id="user-info">Loading...</span></p>
+
+      <div class="info-section">
+        <div class="info-card token-card">
+          <p class="info-label">Your API Token (just in case you need it)</p>
+          <p class="info-value token-value" id="token-display">••••••••••••••••</p>
+        </div>
+      </div>
+
+      <p class="success-note">Your credentials have been saved. You're ready to deploy!</p>
+    </div>
+  </div>
+
+  <script>
+    // Parse query parameters
+    const params = new URLSearchParams(window.location.search);
+    const email = params.get('email') || 'Unknown';
+    const name = params.get('name') || '';
+    const token = params.get('token') || '';
+
+    // Display user info
+    const userInfo = document.getElementById('user-info');
+    if (name && name !== email) {
+      userInfo.textContent = `${name} (${email})`;
+    } else {
+      userInfo.textContent = email;
+    }
+
+    // Display full token for reference
+    const tokenDisplay = document.getElementById('token-display');
+    if (token) {
+      tokenDisplay.textContent = token;
+    }
+  </script>
+</body>
+</html>
