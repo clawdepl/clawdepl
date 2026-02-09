@@ -140,6 +140,13 @@ Changes that require documentation updates:
 - Modifying help text or descriptions
 - Changing command behavior
 
+## Commit Message Rules
+
+- **Never mention AI tools** in commit messages - no references to Cursor, Claude, Copilot, ChatGPT, or any AI assistant
+- **Never add Co-authored-by lines** for AI tools (e.g., `Co-authored-by: Cursor <cursoragent@cursor.com>`)
+- Commits should read as if written by a human developer
+- Follow conventional commit format as specified in `.cursor/rules/commit-messages.mdc`
+
 ## Core Principles
 - **Simplicity First**: Make every change as simple as possible. Impact minimal code.
 - **No Hackiness**: Find root causes. No temporary fixes. Senior developer standards.
