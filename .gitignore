@@ -8,8 +8,9 @@
 *.dylib
 /dist/
 /bin/
-
 hidden-docs/
+.env
+
 # Go
 *.o
 *.a
