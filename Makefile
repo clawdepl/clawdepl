@@ -15,8 +15,7 @@ COMMIT_FULL := $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
 DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Endpoint URLs (configurable via environment for different environments)
-CONVEX_ENDPOINT ?= https://colorless-gull-839.convex.site
-PROVISIONER_ENDPOINT ?= https://clawdepl-provisioner-production.up.railway.app
+API_ENDPOINT ?= https://ghcvpnixedcjpokvbsep.supabase.co/functions/v1
 AUTH_ENDPOINT ?= https://clawdepl-auth.vercel.app
 
 # ldflags for build-time injection
@@ -25,8 +24,7 @@ LDFLAGS := -ldflags "-s -w \
 	-X $(GO_MODULE)/internal/buildinfo.Commit=$(COMMIT) \
 	-X $(GO_MODULE)/internal/buildinfo.CommitFull=$(COMMIT_FULL) \
 	-X $(GO_MODULE)/internal/buildinfo.Date=$(DATE) \
-	-X $(GO_MODULE)/internal/buildinfo.ConvexEndpoint=$(CONVEX_ENDPOINT) \
-	-X $(GO_MODULE)/internal/buildinfo.ProvisionerEndpoint=$(PROVISIONER_ENDPOINT) \
+	-X $(GO_MODULE)/internal/buildinfo.APIEndpoint=$(API_ENDPOINT) \
 	-X $(GO_MODULE)/internal/buildinfo.AuthEndpoint=$(AUTH_ENDPOINT)"
 
 # Platforms for cross-compilation

@@ -52,39 +52,37 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: "1.21"
+          go-version: "1.25"
 
       - name: Build binary
         env:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           VERSION: ${{ needs.check-label.outputs.version }}
-          # Endpoint URLs (can be overridden via repository secrets if needed)
-          CONVEX_ENDPOINT: ${{ vars.CONVEX_ENDPOINT || 'https://colorless-gull-839.convex.site' }}
-          PROVISIONER_ENDPOINT: ${{ vars.PROVISIONER_ENDPOINT || 'https://clawdepl-provisioner-production.up.railway.app' }}
+          # Endpoint URLs (can be overridden via repository variables if needed)
+          API_ENDPOINT: ${{ vars.API_ENDPOINT || 'https://ghcvpnixedcjpokvbsep.supabase.co/functions/v1' }}
           AUTH_ENDPOINT: ${{ vars.AUTH_ENDPOINT || 'https://clawdepl-auth.vercel.app' }}
         run: |
           EXT=""
           if [ "$GOOS" = "windows" ]; then
             EXT=".exe"
           fi
-          
+
           OUTPUT_DIR="dist/clawdepl_${VERSION}_${GOOS}_${GOARCH}"
           mkdir -p "$OUTPUT_DIR"
-          
+
           # Build metadata
           COMMIT="${GITHUB_SHA::7}"
           COMMIT_FULL="${GITHUB_SHA}"
           DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
-          
+
           # Build with full metadata and endpoint injection
           go build -ldflags "-s -w \
             -X github.com/clawdepl/clawdepl/internal/buildinfo.Version=${VERSION} \
             -X github.com/clawdepl/clawdepl/internal/buildinfo.Commit=${COMMIT} \
             -X github.com/clawdepl/clawdepl/internal/buildinfo.CommitFull=${COMMIT_FULL} \
             -X github.com/clawdepl/clawdepl/internal/buildinfo.Date=${DATE} \
-            -X github.com/clawdepl/clawdepl/internal/buildinfo.ConvexEndpoint=${CONVEX_ENDPOINT} \
-            -X github.com/clawdepl/clawdepl/internal/buildinfo.ProvisionerEndpoint=${PROVISIONER_ENDPOINT} \
+            -X github.com/clawdepl/clawdepl/internal/buildinfo.APIEndpoint=${API_ENDPOINT} \
             -X github.com/clawdepl/clawdepl/internal/buildinfo.AuthEndpoint=${AUTH_ENDPOINT}" \
             -o "${OUTPUT_DIR}/clawdepl${EXT}" .
           
