@@ -6,11 +6,11 @@ const os = require("os");
 const fs = require("fs");
 
 /**
- * Get the path to the clawdpl binary for the current platform
+ * Get the path to the clawdepl binary for the current platform
  */
 function getBinaryPath() {
   const platform = os.platform();
-  let binaryName = "clawdpl";
+  let binaryName = "clawdepl";
   if (platform === "win32") {
     binaryName += ".exe";
   }
@@ -37,7 +37,7 @@ function getBinaryPath() {
 }
 
 /**
- * Run the clawdpl binary with the provided arguments
+ * Run the clawdepl binary with the provided arguments
  */
 function run() {
   const binaryPath = getBinaryPath();
@@ -50,21 +50,21 @@ function run() {
 
   child.on("error", (err) => {
     if (err.code === "ENOENT") {
-      console.error("Error: clawdpl binary not found.");
+      console.error("Error: clawdepl binary not found.");
       console.error("");
       console.error("The binary was not bundled with this package and is not in your PATH.");
       console.error("");
       console.error("Install the binary using one of these methods:");
       console.error("");
       console.error("  # Install from source (requires Go 1.21+):");
-      console.error("  go install github.com/moltyverse/clawdpl@latest");
+      console.error("  go install github.com/moltyverse/clawdepl@latest");
       console.error("");
       console.error("  # Or set CLAWDPL_BINARY_PATH to point to the binary:");
-      console.error("  export CLAWDPL_BINARY_PATH=/path/to/clawdpl");
+      console.error("  export CLAWDPL_BINARY_PATH=/path/to/clawdepl");
       console.error("");
       process.exit(1);
     }
-    console.error("Error running clawdpl:", err.message);
+    console.error("Error running clawdepl:", err.message);
     process.exit(1);
   });
 

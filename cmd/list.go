@@ -8,8 +8,8 @@ import (
 	"text/tabwriter"
 	"time"
 
-	"github.com/moltyverse/clawdpl/internal/api"
-	"github.com/moltyverse/clawdpl/internal/config"
+	"github.com/moltyverse/clawdepl/internal/api"
+	"github.com/moltyverse/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -22,8 +22,8 @@ var listCmd = &cobra.Command{
 Displays instance name, status, sandbox ID, and creation time in a table format.
 
 Examples:
-  clawdpl list
-  clawdpl ls`,
+  clawdepl list
+  clawdepl ls`,
 	RunE: runList,
 }
 
@@ -34,7 +34,7 @@ func init() {
 func runList(cmd *cobra.Command, args []string) error {
 	// Check if logged in (or using unsafe token in debug builds)
 	if !HasUnsafeToken() && !config.IsLoggedIn() {
-		fmt.Println("Not logged in. Run 'clawdpl login' first.")
+		fmt.Println("Not logged in. Run 'clawdepl login' first.")
 		return nil
 	}
 
@@ -53,7 +53,7 @@ func runList(cmd *cobra.Command, args []string) error {
 
 	if len(moltys) == 0 {
 		fmt.Println("No instances found.")
-		fmt.Println("\nCreate your first instance with 'clawdpl new'")
+		fmt.Println("\nCreate your first instance with 'clawdepl new'")
 		return nil
 	}
 

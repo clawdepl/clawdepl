@@ -1,40 +1,40 @@
-# clawdpl
+# clawdepl
 
 Create and manage OpenClaw AI Agent orchestrator instances from the command line.
 
-This is the npm distribution of clawdpl. For full documentation, see the [main repository](https://github.com/moltyverse/clawdpl).
+This is the npm distribution of clawdepl. For full documentation, see the [main repository](https://github.com/moltyverse/clawdepl).
 
 ## Quick Start (No Install)
 
 ```bash
-npx clawdpl init my-project
+npx clawdepl init my-project
 ```
 
 ## Installation
 
 ```bash
-npm install -g clawdpl
+npm install -g clawdepl
 ```
 
 ## Usage
 
 ```bash
 # Create a new OpenClaw project
-clawdpl init my-project
+clawdepl init my-project
 
 # Deploy to hosted infrastructure
-clawdpl deploy
+clawdepl deploy
 
 # Check instance status
-clawdpl status
+clawdepl status
 
 # Get help
-clawdpl --help
+clawdepl --help
 ```
 
 ## How It Works
 
-This package is a thin wrapper around the clawdpl Go binary. On installation, it automatically downloads the appropriate binary for your platform from GitHub Releases.
+This package is a thin wrapper around the clawdepl Go binary. On installation, it automatically downloads the appropriate binary for your platform from GitHub Releases.
 
 Supported platforms:
 - Linux (x64, arm64)
@@ -43,8 +43,8 @@ Supported platforms:
 
 ## Environment Variables
 
-- `CLAWDPL_BINARY_PATH`: Override the path to the clawdpl binary
+- `CLAWDPL_BINARY_PATH`: Override the path to the clawdepl binary
 
 ## License
 
-MIT - see [LICENSE](https://github.com/moltyverse/clawdpl/blob/main/LICENSE)
+MIT - see [LICENSE](https://github.com/moltyverse/clawdepl/blob/main/LICENSE)

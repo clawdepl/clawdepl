@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/moltyverse/clawdpl/internal/api"
-	"github.com/moltyverse/clawdpl/internal/config"
+	"github.com/moltyverse/clawdepl/internal/api"
+	"github.com/moltyverse/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -18,7 +18,7 @@ var statusCmd = &cobra.Command{
 Displays status, stage, progress, and gateway URL if available.
 
 Examples:
-  clawdpl status sandbox_abc123`,
+  clawdepl status sandbox_abc123`,
 	Args: cobra.ExactArgs(1),
 	RunE: runStatus,
 }
@@ -30,7 +30,7 @@ func init() {
 func runStatus(cmd *cobra.Command, args []string) error {
 	// Check if logged in (or using unsafe token in debug builds)
 	if !HasUnsafeToken() && !config.IsLoggedIn() {
-		fmt.Println("Not logged in. Run 'clawdpl login' first.")
+		fmt.Println("Not logged in. Run 'clawdepl login' first.")
 		return nil
 	}
 

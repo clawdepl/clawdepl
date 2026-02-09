@@ -8,7 +8,7 @@ const { execSync, spawn } = require("child_process");
 const zlib = require("zlib");
 
 const VERSION = require("../package.json").version;
-const REPO = "moltyverse/clawdpl";
+const REPO = "moltyverse/clawdepl";
 
 /**
  * Get platform-specific binary info
@@ -36,8 +36,8 @@ function getPlatformInfo() {
   }
 
   const ext = platform === "win32" ? ".exe" : "";
-  const binaryName = `clawdpl${ext}`;
-  const archiveName = `clawdpl_${VERSION}_${osPlatform}_${osArch}.tar.gz`;
+  const binaryName = `clawdepl${ext}`;
+  const archiveName = `clawdepl_${VERSION}_${osPlatform}_${osArch}.tar.gz`;
 
   return { platform: osPlatform, arch: osArch, binaryName, archiveName, ext };
 }
@@ -57,7 +57,7 @@ function downloadFile(url) {
       
       protocol.get(currentUrl, {
         headers: {
-          "User-Agent": "clawdpl-npm-installer",
+          "User-Agent": "clawdepl-npm-installer",
           "Accept": "application/octet-stream",
         }
       }, (response) => {
@@ -87,7 +87,7 @@ function downloadFile(url) {
  */
 async function extractTarGz(buffer, destDir, binaryName) {
   const tar = require("tar");
-  const tmpFile = path.join(os.tmpdir(), `clawdpl-${Date.now()}.tar.gz`);
+  const tmpFile = path.join(os.tmpdir(), `clawdepl-${Date.now()}.tar.gz`);
   
   fs.writeFileSync(tmpFile, buffer);
   
@@ -164,7 +164,7 @@ async function downloadBinary() {
 
   // Skip if binary already exists
   if (fs.existsSync(binaryPath)) {
-    console.log("clawdpl binary already installed.");
+    console.log("clawdepl binary already installed.");
     return;
   }
 
@@ -179,7 +179,7 @@ async function downloadBinary() {
 
   const downloadUrl = `https://github.com/${REPO}/releases/download/v${VERSION}/${archiveName}`;
   
-  console.log(`Downloading clawdpl v${VERSION}...`);
+  console.log(`Downloading clawdepl v${VERSION}...`);
   console.log(`Platform: ${os.platform()}-${os.arch()}`);
   console.log(`URL: ${downloadUrl}`);
 
@@ -189,7 +189,7 @@ async function downloadBinary() {
     
     await extractTarGzSimple(buffer, binDir, binaryName);
     
-    console.log(`Successfully installed clawdpl to ${binaryPath}`);
+    console.log(`Successfully installed clawdepl to ${binaryPath}`);
   } catch (err) {
     console.warn("");
     console.warn(`Note: Could not download pre-built binary: ${err.message}`);
@@ -198,8 +198,8 @@ async function downloadBinary() {
     console.warn("  - This version hasn't been released yet");
     console.warn("  - You're on an unsupported platform");
     console.warn("");
-    console.warn("The CLI will look for 'clawdpl' in your PATH at runtime.");
-    console.warn("Install from source: go install github.com/moltyverse/clawdpl@latest");
+    console.warn("The CLI will look for 'clawdepl' in your PATH at runtime.");
+    console.warn("Install from source: go install github.com/moltyverse/clawdepl@latest");
     console.warn("");
     // Don't fail the install - the wrapper will handle missing binary at runtime
   }

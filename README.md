@@ -1,27 +1,27 @@
-# clawdpl
+# clawdepl
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://go.dev/)
-[![npm](https://img.shields.io/npm/v/clawdpl?logo=npm)](https://www.npmjs.com/package/clawdpl)
-[![PyPI](https://img.shields.io/pypi/v/clawdpl?logo=python)](https://pypi.org/project/clawdpl/)
-[![CI](https://github.com/moltyverse/clawdpl/actions/workflows/ci.yml/badge.svg)](https://github.com/moltyverse/clawdpl/actions/workflows/ci.yml)
+[![npm](https://img.shields.io/npm/v/clawdepl?logo=npm)](https://www.npmjs.com/package/clawdepl)
+[![PyPI](https://img.shields.io/pypi/v/clawdepl?logo=python)](https://pypi.org/project/clawdepl/)
+[![CI](https://github.com/moltyverse/clawdepl/actions/workflows/ci.yml/badge.svg)](https://github.com/moltyverse/clawdepl/actions/workflows/ci.yml)
 
 Create and manage [OpenClaw](https://openclaw.io) AI Agent orchestrator instances on hosted infrastructure—instantly.
 
 ## What is OpenClaw?
 
-OpenClaw is an AI Agent orchestrator that enables you to deploy, configure, and scale intelligent agent workflows. With `clawdpl`, you can spin up new OpenClaw instances in seconds, manage deployments, and monitor your agent infrastructure from the command line.
+OpenClaw is an AI Agent orchestrator that enables you to deploy, configure, and scale intelligent agent workflows. With `clawdepl`, you can spin up new OpenClaw instances in seconds, manage deployments, and monitor your agent infrastructure from the command line.
 
 ## Quick Start
 
-The fastest way to use clawdpl is with `npx` or `pipx`—no installation required:
+The fastest way to use clawdepl is with `npx` or `pipx`—no installation required:
 
 ```bash
 # Using npx (Node.js)
-npx clawdpl init my-project
+npx clawdepl init my-project
 
 # Using pipx (Python)
-pipx run clawdpl init my-project
+pipx run clawdepl init my-project
 ```
 
 ## Installation
@@ -29,38 +29,38 @@ pipx run clawdpl init my-project
 ### npx (No Install Required)
 
 ```bash
-npx clawdpl <command>
+npx clawdepl <command>
 ```
 
 ### pipx (No Install Required)
 
 ```bash
-pipx run clawdpl <command>
+pipx run clawdepl <command>
 ```
 
 ### npm (Global Install)
 
 ```bash
-npm install -g clawdpl
+npm install -g clawdepl
 ```
 
 ### pip (Global Install)
 
 ```bash
-pip install clawdpl
+pip install clawdepl
 ```
 
 ### Go
 
 ```bash
-go install github.com/moltyverse/clawdpl@latest
+go install github.com/moltyverse/clawdepl@latest
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/moltyverse/clawdpl.git
-cd clawdpl
+git clone https://github.com/moltyverse/clawdepl.git
+cd clawdepl
 make build
 ```
 
@@ -68,23 +68,23 @@ make build
 
 ```bash
 # Create a new OpenClaw project
-clawdpl init my-agent-project
+clawdepl init my-agent-project
 
 # Navigate to your project
 cd my-agent-project
 
 # Deploy to hosted infrastructure
-clawdpl deploy
+clawdepl deploy
 
 # Check the status of your instance
-clawdpl status
+clawdepl status
 ```
 
 ## Commands
 
 | Command | Description |
 |---------|-------------|
-| `login` | Authenticate with clawdpl.dev |
+| `login` | Authenticate with clawdepl.dev |
 | `logout` | Clear stored credentials |
 | `new [name]` | Create a new OpenClaw instance |
 | `list` | List all deployed instances |
@@ -94,7 +94,7 @@ clawdpl status
 | `delete <name>` | Delete an instance |
 | `version` | Print version and build information |
 
-Run `clawdpl --help` for a complete list of commands and options.
+Run `clawdepl --help` for a complete list of commands and options.
 
 ### Version Command
 
@@ -102,16 +102,16 @@ The `version` command displays detailed build information:
 
 ```bash
 # Human-readable output
-clawdpl version
+clawdepl version
 
 # JSON output for scripting
-clawdpl version --json
+clawdepl version --json
 ```
 
 Example output:
 
 ```
-clawdpl v1.2.3
+clawdepl v1.2.3
   commit:   abc1234 (abc1234567890...)
   built:    2026-02-08T12:34:56Z
   mode:     prod
@@ -138,7 +138,7 @@ default_region: us-east-1
 ## Architecture
 
 ```
-clawdpl/
+clawdepl/
 ├── cmd/                    # CLI commands (Cobra)
 ├── internal/
 │   ├── api/               # OpenClaw API client
@@ -224,7 +224,7 @@ make dev-clean
 go run . --help
 
 # Or build and run
-make build && ./clawdpl --help
+make build && ./clawdepl --help
 ```
 
 ### Manual Testing of npm/Python Wrappers
@@ -235,24 +235,24 @@ After building with `make dev` or `make dev-debug`, you can manually test the wr
 
 ```bash
 # Test the npm wrapper directly
-cd npm && node bin/clawdpl.js --version
+cd npm && node bin/clawdepl.js --version
 
 # Or use npm link for global testing
 cd npm && npm link
-clawdpl --version  # Now available globally
-npm unlink -g clawdpl  # Cleanup
+clawdepl --version  # Now available globally
+npm unlink -g clawdepl  # Cleanup
 ```
 
 **Python wrapper:**
 
 ```bash
 # Test the Python wrapper directly
-cd python && python -m clawdpl.cli --version
+cd python && python -m clawdepl.cli --version
 
 # Or install in development mode
 cd python && pip install -e .
-clawdpl --version  # Now available globally
-pip uninstall clawdpl  # Cleanup
+clawdepl --version  # Now available globally
+pip uninstall clawdepl  # Cleanup
 ```
 
 **Using make targets:**
@@ -281,7 +281,7 @@ To create a debug build:
 make build-debug
 ```
 
-Debug builds can be identified by running `clawdpl version`, which will show `mode: debug` instead of `mode: prod`.
+Debug builds can be identified by running `clawdepl version`, which will show `mode: debug` instead of `mode: prod`.
 
 Debug-only flags include:
 - `--unsafe-endpoint`: Override the API endpoint URL (for testing against staging/local servers)
@@ -338,8 +338,8 @@ docs: update installation instructions
 ## Support
 
 - **Documentation**: [docs.openclaw.io](https://docs.openclaw.io)
-- **Issues**: [GitHub Issues](https://github.com/moltyverse/clawdpl/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/moltyverse/clawdpl/discussions)
+- **Issues**: [GitHub Issues](https://github.com/moltyverse/clawdepl/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/moltyverse/clawdepl/discussions)
 
 ## License
 

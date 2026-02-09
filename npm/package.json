@@ -1,13 +1,13 @@
 {
-  "name": "clawdpl",
+  "name": "clawdepl",
   "version": "0.1.0",
   "description": "Create and manage OpenClaw AI Agent orchestrator instances",
   "bin": {
-    "clawdpl": "./bin/clawdpl.js"
+    "clawdepl": "./bin/clawdepl.js"
   },
   "scripts": {
     "postinstall": "node ./bin/install.js",
-    "test": "node ./bin/clawdpl.js --version"
+    "test": "node ./bin/clawdepl.js --version"
   },
   "keywords": [
     "openclaw",
@@ -16,18 +16,18 @@
     "orchestrator",
     "cli",
     "moltyverse",
-    "clawdpl"
+    "clawdepl"
   ],
   "author": "Moltyverse",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/moltyverse/clawdpl.git"
+    "url": "git+https://github.com/moltyverse/clawdepl.git"
   },
   "bugs": {
-    "url": "https://github.com/moltyverse/clawdpl/issues"
+    "url": "https://github.com/moltyverse/clawdepl/issues"
   },
-  "homepage": "https://github.com/moltyverse/clawdpl#readme",
+  "homepage": "https://github.com/moltyverse/clawdepl#readme",
   "engines": {
     "node": ">=16.0.0"
   },

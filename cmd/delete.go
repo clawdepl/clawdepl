@@ -8,8 +8,8 @@ import (
 	"strings"
 	"time"
 
-	"github.com/moltyverse/clawdpl/internal/api"
-	"github.com/moltyverse/clawdpl/internal/config"
+	"github.com/moltyverse/clawdepl/internal/api"
+	"github.com/moltyverse/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -25,9 +25,9 @@ var deleteCmd = &cobra.Command{
 By default, prompts for confirmation before deleting. Use -y to skip.
 
 Examples:
-  clawdpl delete sandbox_abc123           # Delete with confirmation
-  clawdpl delete sandbox_abc123 -y        # Delete without confirmation
-  clawdpl delete sandbox_1 sandbox_2      # Delete multiple instances`,
+  clawdepl delete sandbox_abc123           # Delete with confirmation
+  clawdepl delete sandbox_abc123 -y        # Delete without confirmation
+  clawdepl delete sandbox_1 sandbox_2      # Delete multiple instances`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: runDelete,
 }
@@ -40,7 +40,7 @@ func init() {
 func runDelete(cmd *cobra.Command, args []string) error {
 	// Check if logged in (or using unsafe token in debug builds)
 	if !HasUnsafeToken() && !config.IsLoggedIn() {
-		fmt.Println("Not logged in. Run 'clawdpl login' first.")
+		fmt.Println("Not logged in. Run 'clawdepl login' first.")
 		return nil
 	}
 

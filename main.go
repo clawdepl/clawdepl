@@ -1,7 +1,7 @@
 package main
 
 import (
-	"github.com/moltyverse/clawdpl/cmd"
+	"github.com/moltyverse/clawdepl/cmd"
 )
 
 func main() {

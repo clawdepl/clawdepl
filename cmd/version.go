@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/moltyverse/clawdpl/internal/api"
-	"github.com/moltyverse/clawdpl/internal/buildinfo"
+	"github.com/moltyverse/clawdepl/internal/api"
+	"github.com/moltyverse/clawdepl/internal/buildinfo"
 	"github.com/spf13/cobra"
 )
 
@@ -15,14 +15,14 @@ var versionJSON bool
 var versionCmd = &cobra.Command{
 	Use:   "version",
 	Short: "Print version and build information",
-	Long: `Print detailed version and build information for clawdpl.
+	Long: `Print detailed version and build information for clawdepl.
 
 Displays the version, git commit, build date, build mode (debug/prod),
 platform, and Go version.
 
 Examples:
-  clawdpl version          # Human-readable output
-  clawdpl version --json   # JSON output for scripting`,
+  clawdepl version          # Human-readable output
+  clawdepl version --json   # JSON output for scripting`,
 	Run: runVersion,
 }
 

@@ -1,4 +1,4 @@
-// Package buildinfo contains build-time metadata for the clawdpl CLI.
+// Package buildinfo contains build-time metadata for the clawdepl CLI.
 // Variables are set via -ldflags during build. Safe defaults are provided
 // for local development with `go run`.
 package buildinfo
@@ -7,7 +7,7 @@ import "runtime"
 
 var (
 	// Name is the application name
-	Name = "clawdpl"
+	Name = "clawdepl"
 
 	// Version is the semantic version (set via -ldflags for releases, "dev" otherwise)
 	Version = "dev"

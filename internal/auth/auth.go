@@ -1,4 +1,4 @@
-// Package auth handles authentication flows for clawdpl.
+// Package auth handles authentication flows for clawdepl.
 package auth
 
 import (
@@ -15,12 +15,12 @@ import (
 	"strings"
 	"time"
 
-	"github.com/moltyverse/clawdpl/internal/config"
+	"github.com/moltyverse/clawdepl/internal/config"
 )
 
 const (
 	// AuthBaseURL is the base URL for authentication
-	AuthBaseURL = "https://clawdpl.dev"
+	AuthBaseURL = "https://clawdepl.dev"
 	// AuthPath is the path for CLI authentication
 	AuthPath = "/cli/auth"
 	// CallbackPath is the path for OAuth callback
@@ -112,7 +112,7 @@ func LoginWithBrowser(ctx context.Context) (*config.Credentials, error) {
 		w.Header().Set("Content-Type", "text/html")
 		fmt.Fprintf(w, `<!DOCTYPE html>
 <html>
-<head><title>clawdpl - Login Successful</title></head>
+<head><title>clawdepl - Login Successful</title></head>
 <body style="font-family: system-ui; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; background: #1a1a2e;">
 <div style="text-align: center; color: #eee;">
 <h1>✓ Login Successful</h1>

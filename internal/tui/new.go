@@ -1,4 +1,4 @@
-// Package tui provides terminal user interface components for clawdpl.
+// Package tui provides terminal user interface components for clawdepl.
 package tui
 
 import (
@@ -304,7 +304,7 @@ func (m NewInstanceModel) View() string {
 		b.WriteString(successStyle.Render("✓ Done!"))
 		b.WriteString(" Your instance is ready.\n\n")
 		b.WriteString(fmt.Sprintf("  Run %s to see it in action.\n",
-			focusedStyle.Render(fmt.Sprintf("clawdpl status %s", m.result.Name))))
+			focusedStyle.Render(fmt.Sprintf("clawdepl status %s", m.result.Name))))
 	}
 
 	b.WriteString("\n")

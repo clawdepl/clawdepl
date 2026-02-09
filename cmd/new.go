@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/moltyverse/clawdpl/internal/api"
-	"github.com/moltyverse/clawdpl/internal/config"
-	"github.com/moltyverse/clawdpl/internal/tui"
+	"github.com/moltyverse/clawdepl/internal/api"
+	"github.com/moltyverse/clawdepl/internal/config"
+	"github.com/moltyverse/clawdepl/internal/tui"
 	"github.com/spf13/cobra"
 )
 
@@ -23,8 +23,8 @@ The wizard will guide you through:
   3. Purpose/description (vibe)
 
 Examples:
-  clawdpl new              # Interactive wizard
-  clawdpl new my-agent     # Skip name prompt`,
+  clawdepl new              # Interactive wizard
+  clawdepl new my-agent     # Skip name prompt`,
 	Args: cobra.MaximumNArgs(1),
 	RunE: runNew,
 }
@@ -36,7 +36,7 @@ func init() {
 func runNew(cmd *cobra.Command, args []string) error {
 	// Check if logged in (or using unsafe token in debug builds)
 	if !HasUnsafeToken() && !config.IsLoggedIn() {
-		fmt.Println("Not logged in. Run 'clawdpl login' first.")
+		fmt.Println("Not logged in. Run 'clawdepl login' first.")
 		return nil
 	}
 

@@ -3,7 +3,7 @@ requires = ["hatchling"]
 build-backend = "hatchling.build"
 
 [project]
-name = "clawdpl"
+name = "clawdepl"
 version = "0.1.0"
 description = "Create and manage OpenClaw AI Agent orchestrator instances"
 readme = "README.md"
@@ -19,7 +19,7 @@ keywords = [
     "orchestrator",
     "cli",
     "moltyverse",
-    "clawdpl"
+    "clawdepl"
 ]
 classifiers = [
     "Development Status :: 3 - Alpha",
@@ -42,20 +42,20 @@ dependencies = [
 ]
 
 [project.scripts]
-clawdpl = "clawdpl.cli:main"
+clawdepl = "clawdepl.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/moltyverse/clawdpl"
-Documentation = "https://github.com/moltyverse/clawdpl#readme"
-Repository = "https://github.com/moltyverse/clawdpl.git"
-Issues = "https://github.com/moltyverse/clawdpl/issues"
+Homepage = "https://github.com/moltyverse/clawdepl"
+Documentation = "https://github.com/moltyverse/clawdepl#readme"
+Repository = "https://github.com/moltyverse/clawdepl.git"
+Issues = "https://github.com/moltyverse/clawdepl/issues"
 
 [tool.hatch.build.targets.wheel]
-packages = ["clawdpl"]
+packages = ["clawdepl"]
 
 [tool.hatch.build.targets.sdist]
 include = [
-    "/clawdpl",
+    "/clawdepl",
     "/README.md",
     "/LICENSE",
 ]

@@ -5,8 +5,8 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/moltyverse/clawdpl/internal/api"
-	"github.com/moltyverse/clawdpl/internal/config"
+	"github.com/moltyverse/clawdepl/internal/api"
+	"github.com/moltyverse/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -16,7 +16,7 @@ var stopCmd = &cobra.Command{
 	Long: `Stop a running Molty instance by sandbox ID.
 
 Examples:
-  clawdpl stop sandbox_abc123`,
+  clawdepl stop sandbox_abc123`,
 	Args: cobra.ExactArgs(1),
 	RunE: runStop,
 }
@@ -28,7 +28,7 @@ func init() {
 func runStop(cmd *cobra.Command, args []string) error {
 	// Check if logged in (or using unsafe token in debug builds)
 	if !HasUnsafeToken() && !config.IsLoggedIn() {
-		fmt.Println("Not logged in. Run 'clawdpl login' first.")
+		fmt.Println("Not logged in. Run 'clawdepl login' first.")
 		return nil
 	}
 

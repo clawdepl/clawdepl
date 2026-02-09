@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/moltyverse/clawdpl/internal/buildinfo"
+	"github.com/moltyverse/clawdepl/internal/buildinfo"
 )
 
 func TestVersionInfo(t *testing.T) {
@@ -45,7 +45,7 @@ func TestVersionInfo(t *testing.T) {
 
 func TestVersionJSONOutput(t *testing.T) {
 	info := VersionInfo{
-		Name:       "clawdpl",
+		Name:       "clawdepl",
 		Version:    "1.2.3",
 		Commit:     "abc1234",
 		CommitFull: "abc1234567890",
@@ -85,7 +85,7 @@ func TestVersionJSONOutput(t *testing.T) {
 func TestPrintVersionHuman(t *testing.T) {
 	// Capture output by testing the format logic
 	info := VersionInfo{
-		Name:       "clawdpl",
+		Name:       "clawdepl",
 		Version:    "1.2.3",
 		Commit:     "abc1234",
 		CommitFull: "abc1234567890",
@@ -122,7 +122,7 @@ func TestPrintVersionHuman(t *testing.T) {
 
 func TestPrintVersionHumanDev(t *testing.T) {
 	info := VersionInfo{
-		Name:    "clawdpl",
+		Name:    "clawdepl",
 		Version: "dev",
 	}
 
@@ -168,7 +168,7 @@ func TestVersionCommandHasJSONFlag(t *testing.T) {
 
 func TestVersionJSONMarshal(t *testing.T) {
 	info := VersionInfo{
-		Name:       "clawdpl",
+		Name:       "clawdepl",
 		Version:    "dev",
 		Commit:     "unknown",
 		CommitFull: "unknown",
@@ -187,7 +187,7 @@ func TestVersionJSONMarshal(t *testing.T) {
 	}
 
 	output := buf.String()
-	if !strings.Contains(output, `"name": "clawdpl"`) {
+	if !strings.Contains(output, `"name": "clawdepl"`) {
 		t.Error("JSON output should contain name field")
 	}
 	if !strings.Contains(output, `"version": "dev"`) {

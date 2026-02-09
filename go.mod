@@ -1,4 +1,4 @@
-module github.com/moltyverse/clawdpl
+module github.com/moltyverse/clawdepl
 
 go 1.25.7
 

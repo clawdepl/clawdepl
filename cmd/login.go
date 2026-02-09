@@ -6,8 +6,8 @@ import (
 	"os"
 	"time"
 
-	"github.com/moltyverse/clawdpl/internal/auth"
-	"github.com/moltyverse/clawdpl/internal/config"
+	"github.com/moltyverse/clawdepl/internal/auth"
+	"github.com/moltyverse/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -19,17 +19,17 @@ var (
 
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Authenticate with clawdpl.dev",
-	Long: `Authenticate with clawdpl.dev to manage your OpenClaw instances.
+	Short: "Authenticate with clawdepl.dev",
+	Long: `Authenticate with clawdepl.dev to manage your OpenClaw instances.
 
 By default, opens a browser for OAuth authentication. Use flags to change
 the authentication method.
 
 Examples:
-  clawdpl login              # OAuth via browser (default)
-  clawdpl login --no-browser # OAuth without browser (manual token entry)
-  clawdpl login --api-key    # Authenticate with an API key
-  clawdpl login --info       # Show current login status`,
+  clawdepl login              # OAuth via browser (default)
+  clawdepl login --no-browser # OAuth without browser (manual token entry)
+  clawdepl login --api-key    # Authenticate with an API key
+  clawdepl login --info       # Show current login status`,
 	RunE: runLogin,
 }
 
@@ -51,7 +51,7 @@ func runLogin(cmd *cobra.Command, args []string) error {
 		creds, _ := config.LoadCredentials()
 		if creds != nil && creds.User != nil {
 			fmt.Printf("Already logged in as %s (%s)\n", creds.User.Name, creds.User.Email)
-			fmt.Printf("Use 'clawdpl logout' to sign out first.\n")
+			fmt.Printf("Use 'clawdepl logout' to sign out first.\n")
 			return nil
 		}
 	}
@@ -77,7 +77,7 @@ func showLoginInfo() error {
 
 	if creds == nil || !creds.IsValid() {
 		fmt.Println("Not logged in.")
-		fmt.Println("\nRun 'clawdpl login' to authenticate.")
+		fmt.Println("\nRun 'clawdepl login' to authenticate.")
 		return nil
 	}
 

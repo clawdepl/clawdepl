@@ -26,8 +26,8 @@ jobs:
 
       - name: Verify binary works
         run: |
-          go build -o clawdpl .
-          ./clawdpl --version
+          go build -o clawdepl .
+          ./clawdepl --version
 
   test-npm:
     name: Test npm Package
@@ -47,21 +47,21 @@ jobs:
           node-version: "20"
 
       - name: Build Go binary
-        run: go build -o clawdpl .
+        run: go build -o clawdepl .
 
       - name: Copy binary to npm package
-        run: cp clawdpl npm/bin/
+        run: cp clawdepl npm/bin/
 
       - name: Test npm wrapper
         run: |
           cd npm
-          node bin/clawdpl.js --version
+          node bin/clawdepl.js --version
 
       - name: Test npx execution
         run: |
           cd npm
           npm pack
-          npx ./clawdpl-*.tgz --version
+          npx ./clawdepl-*.tgz --version
 
   test-python:
     name: Test Python Package
@@ -84,10 +84,10 @@ jobs:
           python-version: ${{ matrix.python-version }}
 
       - name: Build Go binary
-        run: go build -o clawdpl .
+        run: go build -o clawdepl .
 
       - name: Copy binary to Python package
-        run: cp clawdpl python/clawdpl/
+        run: cp clawdepl python/clawdepl/
 
       - name: Install Python package
         run: |
@@ -97,10 +97,10 @@ jobs:
       - name: Test Python wrapper
         run: |
           cd python
-          python -m clawdpl.cli --version
+          python -m clawdepl.cli --version
 
-      - name: Test clawdpl command
-        run: clawdpl --version
+      - name: Test clawdepl command
+        run: clawdepl --version
 
   test-cross-platform:
     name: Cross-platform Build
@@ -117,7 +117,7 @@ jobs:
           go-version: "1.21"
 
       - name: Build
-        run: go build -o clawdpl${{ matrix.os == 'windows-latest' && '.exe' || '' }} .
+        run: go build -o clawdepl${{ matrix.os == 'windows-latest' && '.exe' || '' }} .
 
       - name: Test
-        run: ./clawdpl${{ matrix.os == 'windows-latest' && '.exe' || '' }} --version
+        run: ./clawdepl${{ matrix.os == 'windows-latest' && '.exe' || '' }} --version

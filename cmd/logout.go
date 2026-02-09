@@ -3,20 +3,20 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/moltyverse/clawdpl/internal/auth"
-	"github.com/moltyverse/clawdpl/internal/config"
+	"github.com/moltyverse/clawdepl/internal/auth"
+	"github.com/moltyverse/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
 var logoutCmd = &cobra.Command{
 	Use:   "logout",
-	Short: "Log out from clawdpl.dev",
-	Long: `Log out from clawdpl.dev and clear stored credentials.
+	Short: "Log out from clawdepl.dev",
+	Long: `Log out from clawdepl.dev and clear stored credentials.
 
-This removes the credentials file from ~/.clawdpl/credentials.json.
+This removes the credentials file from ~/.clawdepl/credentials.json.
 
 Example:
-  clawdpl logout`,
+  clawdepl logout`,
 	RunE: runLogout,
 }
 

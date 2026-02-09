@@ -10,23 +10,23 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$PROJECT_ROOT"
 
 echo "=== Building Go binary ==="
-go build -o clawdpl .
-./clawdpl --version
+go build -o clawdepl .
+./clawdepl --version
 
 echo ""
 echo "=== Testing npm package ==="
-cp clawdpl npm/bin/
+cp clawdepl npm/bin/
 cd npm
-node bin/clawdpl.js --version
-rm -f bin/clawdpl
+node bin/clawdepl.js --version
+rm -f bin/clawdepl
 cd "$PROJECT_ROOT"
 
 echo ""
 echo "=== Testing Python package ==="
-cp clawdpl python/clawdpl/
+cp clawdepl python/clawdepl/
 cd python
-python -m clawdpl.cli --version
-rm -f clawdpl/clawdpl
+python -m clawdepl.cli --version
+rm -f clawdepl/clawdepl
 cd "$PROJECT_ROOT"
 
 echo ""

@@ -2,8 +2,8 @@
 
 # Version from environment or default
 VERSION ?= dev
-BINARY_NAME := clawdpl
-GO_MODULE := github.com/moltyverse/clawdpl
+BINARY_NAME := clawdepl
+GO_MODULE := github.com/moltyverse/clawdepl
 
 # Build directories
 DIST_DIR := dist
@@ -65,7 +65,7 @@ clean:
 	rm -f $(BINARY_NAME) $(BINARY_NAME).exe
 	rm -rf $(DIST_DIR) $(BIN_DIR)
 	rm -rf npm/bin/$(BINARY_NAME) npm/bin/$(BINARY_NAME).exe
-	rm -rf python/clawdpl/$(BINARY_NAME) python/clawdpl/$(BINARY_NAME).exe
+	rm -rf python/clawdepl/$(BINARY_NAME) python/clawdepl/$(BINARY_NAME).exe
 
 # Run Go tests
 test-go:
@@ -86,25 +86,25 @@ test-npm: build
 # Test Python package locally
 test-python: build
 	@echo "Testing Python package..."
-	@cp $(BINARY_NAME) python/clawdpl/
-	@cd python && python -m clawdpl.cli --version
-	@rm -f python/clawdpl/$(BINARY_NAME)
+	@cp $(BINARY_NAME) python/clawdepl/
+	@cd python && python -m clawdepl.cli --version
+	@rm -f python/clawdepl/$(BINARY_NAME)
 	@echo "Python package test passed!"
 
 # Test npx execution (requires npm link or local install)
 test-npx: build
 	@echo "Testing npx execution..."
 	@cp $(BINARY_NAME) npm/bin/
-	@cd npm && npm pack && npx ./clawdpl-$(VERSION).tgz --version
-	@rm -f npm/clawdpl-$(VERSION).tgz npm/bin/$(BINARY_NAME)
+	@cd npm && npm pack && npx ./clawdepl-$(VERSION).tgz --version
+	@rm -f npm/clawdepl-$(VERSION).tgz npm/bin/$(BINARY_NAME)
 	@echo "npx test passed!"
 
 # Test pipx execution
 test-pipx: build
 	@echo "Testing pipx execution..."
-	@cp $(BINARY_NAME) python/clawdpl/
-	@cd python && pipx run --spec . clawdpl --version
-	@rm -f python/clawdpl/$(BINARY_NAME)
+	@cp $(BINARY_NAME) python/clawdepl/
+	@cd python && pipx run --spec . clawdepl --version
+	@rm -f python/clawdepl/$(BINARY_NAME)
 	@echo "pipx test passed!"
 
 # Run all tests
@@ -128,19 +128,19 @@ fmt:
 # Development: build and copy to wrappers for local testing (production build)
 dev: build
 	@cp $(BINARY_NAME) npm/bin/
-	@cp $(BINARY_NAME) python/clawdpl/
-	@echo "Binary copied to npm/bin/ and python/clawdpl/ for local testing"
+	@cp $(BINARY_NAME) python/clawdepl/
+	@echo "Binary copied to npm/bin/ and python/clawdepl/ for local testing"
 
 # Development: build with debug flags and copy to wrappers
 dev-debug: build-debug
 	@cp $(BINARY_NAME) npm/bin/
-	@cp $(BINARY_NAME) python/clawdpl/
-	@echo "Debug binary copied to npm/bin/ and python/clawdpl/ for local testing"
+	@cp $(BINARY_NAME) python/clawdepl/
+	@echo "Debug binary copied to npm/bin/ and python/clawdepl/ for local testing"
 
 # Clean development binaries from wrappers
 dev-clean:
 	@rm -f npm/bin/$(BINARY_NAME) npm/bin/$(BINARY_NAME).exe
-	@rm -f python/clawdpl/$(BINARY_NAME) python/clawdpl/$(BINARY_NAME).exe
+	@rm -f python/clawdepl/$(BINARY_NAME) python/clawdepl/$(BINARY_NAME).exe
 	@echo "Development binaries cleaned from wrappers"
 
 # Show help

@@ -4,34 +4,34 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/moltyverse/clawdpl/internal/buildinfo"
-	"github.com/moltyverse/clawdpl/internal/config"
+	"github.com/moltyverse/clawdepl/internal/buildinfo"
+	"github.com/moltyverse/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "clawdpl",
+	Use:   "clawdepl",
 	Short: "Create and manage OpenClaw instances",
-	Long: `clawdpl is a CLI tool for creating and managing OpenClaw 
+	Long: `clawdepl is a CLI tool for creating and managing OpenClaw 
 AI Agent orchestrator instances on hosted infrastructure.
 
 OpenClaw enables you to deploy, configure, and scale AI agent workflows
 with a single command.
 
 Quick start:
-  clawdpl                    Run the setup wizard (login + new)
-  clawdpl login              Authenticate with clawdpl.dev
-  clawdpl new [name]         Create a new instance
-  clawdpl list               List all instances
+  clawdepl                    Run the setup wizard (login + new)
+  clawdepl login              Authenticate with clawdepl.dev
+  clawdepl new [name]         Create a new instance
+  clawdepl list               List all instances
 
 Instance management:
-  clawdpl status <name>      Show instance status
-  clawdpl start <name>       Start an instance
-  clawdpl stop <name>        Stop an instance
-  clawdpl delete <name>      Delete an instance
+  clawdepl status <name>      Show instance status
+  clawdepl start <name>       Start an instance
+  clawdepl stop <name>        Stop an instance
+  clawdepl delete <name>      Delete an instance
 
 For more information about a command, run:
-  clawdpl <command> --help`,
+  clawdepl <command> --help`,
 	Version: fmt.Sprintf("%s (commit: %s)", buildinfo.Version, buildinfo.Commit),
 	RunE:    runRoot,
 }
@@ -64,14 +64,14 @@ func init() {
 `)
 }
 
-// runRoot handles the case when clawdpl is called without arguments
+// runRoot handles the case when clawdepl is called without arguments
 func runRoot(cmd *cobra.Command, args []string) error {
 	// If no subcommand is provided, run the default flow:
 	// 1. If not logged in (and no unsafe token), login first
 	// 2. Then run the new instance wizard
 
 	if !HasUnsafeToken() && !config.IsLoggedIn() {
-		fmt.Println("Welcome to clawdpl!")
+		fmt.Println("Welcome to clawdepl!")
 		fmt.Println()
 		fmt.Println("Let's get you set up. First, we need to log you in.")
 		fmt.Println()

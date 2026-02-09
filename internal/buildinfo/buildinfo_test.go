@@ -73,8 +73,8 @@ func TestDefaultValues(t *testing.T) {
 	if Name == "" {
 		t.Error("Name should not be empty")
 	}
-	if Name != "clawdpl" {
-		t.Errorf("Name = %q, want %q", Name, "clawdpl")
+	if Name != "clawdepl" {
+		t.Errorf("Name = %q, want %q", Name, "clawdepl")
 	}
 
 	// GoVersion should be set by runtime

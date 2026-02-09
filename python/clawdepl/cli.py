@@ -1,8 +1,8 @@
 #!/usr/bin/env python3
 """
-CLI wrapper for clawdpl.
+CLI wrapper for clawdepl.
 
-This module provides a thin wrapper around the clawdpl Go binary,
+This module provides a thin wrapper around the clawdepl Go binary,
 allowing it to be invoked via Python/pip/pipx installation.
 """
 
@@ -23,7 +23,7 @@ from typing import Optional
 # Version must match the Go binary version
 __version__ = "0.1.0"
 
-REPO = "moltyverse/clawdpl"
+REPO = "moltyverse/clawdepl"
 
 
 def get_platform_info() -> tuple[str, str, str]:
@@ -51,7 +51,7 @@ def get_platform_info() -> tuple[str, str, str]:
         raise RuntimeError(f"Unsupported platform: {system}-{machine}")
 
     ext = ".exe" if system == "windows" else ""
-    binary_name = f"clawdpl{ext}"
+    binary_name = f"clawdepl{ext}"
 
     return os_name, arch, binary_name
 
@@ -59,8 +59,8 @@ def get_platform_info() -> tuple[str, str, str]:
 def get_binary_name() -> str:
     """Get the platform-specific binary name."""
     if platform.system() == "Windows":
-        return "clawdpl.exe"
-    return "clawdpl"
+        return "clawdepl.exe"
+    return "clawdepl"
 
 
 def get_cache_dir() -> Path:
@@ -73,7 +73,7 @@ def get_cache_dir() -> Path:
     else:
         base = Path(os.environ.get("XDG_CACHE_HOME", Path.home() / ".cache"))
 
-    cache_dir = base / "clawdpl"
+    cache_dir = base / "clawdepl"
     cache_dir.mkdir(parents=True, exist_ok=True)
     return cache_dir
 
@@ -92,10 +92,10 @@ def download_binary(dest_path: Path) -> bool:
         print(f"Warning: {e}", file=sys.stderr)
         return False
 
-    archive_name = f"clawdpl_{__version__}_{os_name}_{arch}.tar.gz"
+    archive_name = f"clawdepl_{__version__}_{os_name}_{arch}.tar.gz"
     url = f"https://github.com/{REPO}/releases/download/v{__version__}/{archive_name}"
 
-    print(f"Downloading clawdpl v{__version__}...", file=sys.stderr)
+    print(f"Downloading clawdepl v{__version__}...", file=sys.stderr)
     print(f"Platform: {os_name}-{arch}", file=sys.stderr)
 
     try:
@@ -116,7 +116,7 @@ def download_binary(dest_path: Path) -> bool:
                                 shutil.move(str(extracted), str(dest_path))
                             # Make executable
                             dest_path.chmod(dest_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
-                            print(f"Installed clawdpl to {dest_path}", file=sys.stderr)
+                            print(f"Installed clawdepl to {dest_path}", file=sys.stderr)
                             return True
 
         print(f"Binary {binary_name} not found in archive", file=sys.stderr)
@@ -135,7 +135,7 @@ def download_binary(dest_path: Path) -> bool:
 
 def find_binary() -> Optional[str]:
     """
-    Find the clawdpl binary.
+    Find the clawdepl binary.
 
     Searches in the following order:
     1. CLAWDPL_BINARY_PATH environment variable
@@ -183,22 +183,22 @@ def main() -> int:
     """
     Main entry point for the CLI wrapper.
 
-    Finds and executes the clawdpl binary with all provided arguments.
+    Finds and executes the clawdepl binary with all provided arguments.
     """
     binary_path = find_binary()
 
     if binary_path is None:
-        print("Error: clawdpl binary not found.", file=sys.stderr)
+        print("Error: clawdepl binary not found.", file=sys.stderr)
         print("", file=sys.stderr)
         print("The binary could not be downloaded and is not in your PATH.", file=sys.stderr)
         print("", file=sys.stderr)
         print("Install the binary using one of these methods:", file=sys.stderr)
         print("", file=sys.stderr)
         print("  # Install from source (requires Go 1.21+):", file=sys.stderr)
-        print("  go install github.com/moltyverse/clawdpl@latest", file=sys.stderr)
+        print("  go install github.com/moltyverse/clawdepl@latest", file=sys.stderr)
         print("", file=sys.stderr)
         print("  # Or set CLAWDPL_BINARY_PATH:", file=sys.stderr)
-        print("  export CLAWDPL_BINARY_PATH=/path/to/clawdpl", file=sys.stderr)
+        print("  export CLAWDPL_BINARY_PATH=/path/to/clawdepl", file=sys.stderr)
         print("", file=sys.stderr)
         return 1
 

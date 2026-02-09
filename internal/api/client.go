@@ -10,8 +10,8 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/moltyverse/clawdpl/internal/buildinfo"
-	"github.com/moltyverse/clawdpl/internal/config"
+	"github.com/moltyverse/clawdepl/internal/buildinfo"
+	"github.com/moltyverse/clawdepl/internal/config"
 )
 
 // Client represents the MoltyVerse API client

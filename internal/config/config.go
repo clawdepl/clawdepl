@@ -1,5 +1,5 @@
-// Package config handles credential storage and configuration for clawdpl.
-// Credentials are stored in ~/.clawdpl/credentials.json
+// Package config handles credential storage and configuration for clawdepl.
+// Credentials are stored in ~/.clawdepl/credentials.json
 package config
 
 import (
@@ -11,7 +11,7 @@ import (
 
 const (
 	// ConfigDirName is the name of the config directory in the user's home
-	ConfigDirName = ".clawdpl"
+	ConfigDirName = ".clawdepl"
 	// CredentialsFileName is the name of the credentials file
 	CredentialsFileName = "credentials.json"
 )
@@ -54,7 +54,7 @@ func (c *Credentials) IsValid() bool {
 	return c.AccessToken != "" && !c.IsExpired()
 }
 
-// GetConfigDir returns the path to the clawdpl config directory
+// GetConfigDir returns the path to the clawdepl config directory
 func GetConfigDir() (string, error) {
 	home, err := os.UserHomeDir()
 	if err != nil {

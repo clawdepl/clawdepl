@@ -69,7 +69,7 @@ jobs:
             EXT=".exe"
           fi
           
-          OUTPUT_DIR="dist/clawdpl_${VERSION}_${GOOS}_${GOARCH}"
+          OUTPUT_DIR="dist/clawdepl_${VERSION}_${GOOS}_${GOARCH}"
           mkdir -p "$OUTPUT_DIR"
           
           # Build metadata
@@ -79,18 +79,18 @@ jobs:
           
           # Build with full metadata and endpoint injection
           go build -ldflags "-s -w \
-            -X github.com/moltyverse/clawdpl/internal/buildinfo.Version=${VERSION} \
-            -X github.com/moltyverse/clawdpl/internal/buildinfo.Commit=${COMMIT} \
-            -X github.com/moltyverse/clawdpl/internal/buildinfo.CommitFull=${COMMIT_FULL} \
-            -X github.com/moltyverse/clawdpl/internal/buildinfo.Date=${DATE} \
-            -X github.com/moltyverse/clawdpl/internal/buildinfo.ConvexEndpoint=${CONVEX_ENDPOINT} \
-            -X github.com/moltyverse/clawdpl/internal/buildinfo.ProvisionerEndpoint=${PROVISIONER_ENDPOINT} \
-            -X github.com/moltyverse/clawdpl/internal/buildinfo.AuthEndpoint=${AUTH_ENDPOINT}" \
-            -o "${OUTPUT_DIR}/clawdpl${EXT}" .
+            -X github.com/moltyverse/clawdepl/internal/buildinfo.Version=${VERSION} \
+            -X github.com/moltyverse/clawdepl/internal/buildinfo.Commit=${COMMIT} \
+            -X github.com/moltyverse/clawdepl/internal/buildinfo.CommitFull=${COMMIT_FULL} \
+            -X github.com/moltyverse/clawdepl/internal/buildinfo.Date=${DATE} \
+            -X github.com/moltyverse/clawdepl/internal/buildinfo.ConvexEndpoint=${CONVEX_ENDPOINT} \
+            -X github.com/moltyverse/clawdepl/internal/buildinfo.ProvisionerEndpoint=${PROVISIONER_ENDPOINT} \
+            -X github.com/moltyverse/clawdepl/internal/buildinfo.AuthEndpoint=${AUTH_ENDPOINT}" \
+            -o "${OUTPUT_DIR}/clawdepl${EXT}" .
           
           # Create tarball
           cd dist
-          tar -czf "clawdpl_${VERSION}_${GOOS}_${GOARCH}.tar.gz" "clawdpl_${VERSION}_${GOOS}_${GOARCH}"
+          tar -czf "clawdepl_${VERSION}_${GOOS}_${GOARCH}.tar.gz" "clawdepl_${VERSION}_${GOOS}_${GOARCH}"
 
       - name: Upload artifact
         uses: actions/upload-artifact@v4
@@ -169,8 +169,8 @@ jobs:
           cd python
           sed -i "s/version = \".*\"/version = \"${{ needs.check-label.outputs.version }}\"/" pyproject.toml
           # Also update __version__ in cli.py and __init__.py
-          sed -i "s/__version__ = \".*\"/__version__ = \"${{ needs.check-label.outputs.version }}\"/" clawdpl/cli.py
-          sed -i "s/__version__ = \".*\"/__version__ = \"${{ needs.check-label.outputs.version }}\"/" clawdpl/__init__.py
+          sed -i "s/__version__ = \".*\"/__version__ = \"${{ needs.check-label.outputs.version }}\"/" clawdepl/cli.py
+          sed -i "s/__version__ = \".*\"/__version__ = \"${{ needs.check-label.outputs.version }}\"/" clawdepl/__init__.py
 
       - name: Build package
         run: |
@@ -208,8 +208,8 @@ jobs:
           
           # Update Python pyproject.toml
           sed -i "s/version = \".*\"/version = \"$VERSION\"/" python/pyproject.toml
-          sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" python/clawdpl/cli.py
-          sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" python/clawdpl/__init__.py
+          sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" python/clawdepl/cli.py
+          sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" python/clawdepl/__init__.py
 
       - name: Commit version updates
         run: |

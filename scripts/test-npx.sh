@@ -1,6 +1,6 @@
 #!/bin/bash
 # Test npx execution with local package
-# This simulates what users will experience with `npx clawdpl`
+# This simulates what users will experience with `npx clawdepl`
 
 set -e
 
@@ -10,11 +10,11 @@ PROJECT_ROOT="$(dirname "$SCRIPT_DIR")"
 cd "$PROJECT_ROOT"
 
 echo "=== Building Go binary ==="
-go build -o clawdpl .
+go build -o clawdepl .
 
 echo ""
 echo "=== Preparing npm package ==="
-cp clawdpl npm/bin/
+cp clawdepl npm/bin/
 
 echo ""
 echo "=== Creating npm tarball ==="
@@ -23,12 +23,12 @@ npm pack
 
 echo ""
 echo "=== Testing npx with local tarball ==="
-TARBALL=$(ls clawdpl-*.tgz | head -1)
+TARBALL=$(ls clawdepl-*.tgz | head -1)
 npx "./$TARBALL" --version
 
 echo ""
 echo "=== Cleanup ==="
-rm -f "$TARBALL" bin/clawdpl
+rm -f "$TARBALL" bin/clawdepl
 
 echo ""
 echo "=== npx test passed! ==="

@@ -1,6 +1,6 @@
 # Binaries
-/clawdpl
-/clawdpl.exe
+/clawdepl
+/clawdepl.exe
 *.exe
 *.exe~
 *.dll
