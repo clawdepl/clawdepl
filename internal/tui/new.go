@@ -168,11 +168,7 @@ func (m NewInstanceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 			return m.handleEnter()
 
 		case "ctrl+enter":
-			// Ctrl+Enter adds newline in textarea steps
-			if m.step == stepClaudeToken {
-				m.tokenInput.InsertString("\n")
-				return m, nil
-			}
+			// Ctrl+Enter adds newline only for purpose step (not token)
 			if m.step == stepPurpose {
 				m.purposeInput.InsertString("\n")
 				return m, nil
@@ -231,7 +227,10 @@ func (m NewInstanceModel) handleEnter() (tea.Model, tea.Cmd) {
 		return m, textarea.Blink
 
 	case stepClaudeToken:
+		// Strip any newlines and whitespace from token
 		token := strings.TrimSpace(m.tokenInput.Value())
+		token = strings.ReplaceAll(token, "\n", "")
+		token = strings.ReplaceAll(token, "\r", "")
 		if token == "" {
 			return m, nil
 		}
@@ -295,7 +294,7 @@ func (m NewInstanceModel) View() string {
 		b.WriteString("\n\n")
 		b.WriteString(blurredStyle.Render("Run 'claude setup-token' in a new terminal to get your token."))
 		b.WriteString("\n")
-		b.WriteString(blurredStyle.Render("Your token is stored securely. Enter to submit, Ctrl+Enter for new line."))
+		b.WriteString(blurredStyle.Render("Your token is stored securely. Press Enter to continue."))
 
 	case stepPurpose:
 		b.WriteString(m.renderCompletedStep("Name", m.result.Name))

@@ -68,6 +68,8 @@ env/
 .idea/
 .vscode/
 .cursor/rules/local/
+.cursor/mcp/
+.cursor/mcp.json
 .cursor/debug.log
 *.swp
 *.swo
