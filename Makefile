@@ -16,8 +16,8 @@ DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
 # Endpoint URLs (configurable via environment for different environments)
 CONVEX_ENDPOINT ?= https://colorless-gull-839.convex.site
-PROVISIONER_ENDPOINT ?= https://moltyverse-provisioner-production.up.railway.app
-AUTH_ENDPOINT ?= https://molty-companions.vercel.app
+PROVISIONER_ENDPOINT ?= https://clawdepl-provisioner-production.up.railway.app
+AUTH_ENDPOINT ?= https://clawdepl-auth.vercel.app
 
 # ldflags for build-time injection
 LDFLAGS := -ldflags "-s -w \

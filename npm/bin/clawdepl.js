@@ -27,9 +27,9 @@ function getBinaryPath() {
     return devBinary;
   }
 
-  // 3. Check for binary via CLAWDPL_BINARY_PATH env var (useful for testing)
-  if (process.env.CLAWDPL_BINARY_PATH && fs.existsSync(process.env.CLAWDPL_BINARY_PATH)) {
-    return process.env.CLAWDPL_BINARY_PATH;
+  // 3. Check for binary via CLAWDEPL_BINARY_PATH env var (useful for testing)
+  if (process.env.CLAWDEPL_BINARY_PATH && fs.existsSync(process.env.CLAWDEPL_BINARY_PATH)) {
+    return process.env.CLAWDEPL_BINARY_PATH;
   }
 
   // 4. Fall back to PATH lookup
@@ -59,8 +59,8 @@ function run() {
       console.error("  # Install from source (requires Go 1.21+):");
       console.error("  go install github.com/clawdepl/clawdepl@latest");
       console.error("");
-      console.error("  # Or set CLAWDPL_BINARY_PATH to point to the binary:");
-      console.error("  export CLAWDPL_BINARY_PATH=/path/to/clawdepl");
+      console.error("  # Or set CLAWDEPL_BINARY_PATH to point to the binary:");
+      console.error("  export CLAWDEPL_BINARY_PATH=/path/to/clawdepl");
       console.error("");
       process.exit(1);
     }

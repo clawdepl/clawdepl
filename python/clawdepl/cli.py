@@ -138,7 +138,7 @@ def find_binary() -> Optional[str]:
     Find the clawdepl binary.
 
     Searches in the following order:
-    1. CLAWDPL_BINARY_PATH environment variable
+    1. CLAWDEPL_BINARY_PATH environment variable
     2. Same directory as this script (for development)
     3. Cache directory (downloaded binary)
     4. System PATH
@@ -146,7 +146,7 @@ def find_binary() -> Optional[str]:
     binary_name = get_binary_name()
 
     # 1. Check environment variable
-    env_path = os.environ.get("CLAWDPL_BINARY_PATH")
+    env_path = os.environ.get("CLAWDEPL_BINARY_PATH")
     if env_path and Path(env_path).exists():
         return env_path
 
@@ -197,8 +197,8 @@ def main() -> int:
         print("  # Install from source (requires Go 1.21+):", file=sys.stderr)
         print("  go install github.com/clawdepl/clawdepl@latest", file=sys.stderr)
         print("", file=sys.stderr)
-        print("  # Or set CLAWDPL_BINARY_PATH:", file=sys.stderr)
-        print("  export CLAWDPL_BINARY_PATH=/path/to/clawdepl", file=sys.stderr)
+        print("  # Or set CLAWDEPL_BINARY_PATH:", file=sys.stderr)
+        print("  export CLAWDEPL_BINARY_PATH=/path/to/clawdepl", file=sys.stderr)
         print("", file=sys.stderr)
         return 1
 

@@ -49,7 +49,7 @@ Supported platforms:
 
 ## Environment Variables
 
-- `CLAWDPL_BINARY_PATH`: Override the path to the clawdepl binary
+- `CLAWDEPL_BINARY_PATH`: Override the path to the clawdepl binary
 
 ## Requirements
 

@@ -61,8 +61,8 @@ jobs:
           VERSION: ${{ needs.check-label.outputs.version }}
           # Endpoint URLs (can be overridden via repository secrets if needed)
           CONVEX_ENDPOINT: ${{ vars.CONVEX_ENDPOINT || 'https://colorless-gull-839.convex.site' }}
-          PROVISIONER_ENDPOINT: ${{ vars.PROVISIONER_ENDPOINT || 'https://moltyverse-provisioner-production.up.railway.app' }}
-          AUTH_ENDPOINT: ${{ vars.AUTH_ENDPOINT || 'https://molty-companions.vercel.app' }}
+          PROVISIONER_ENDPOINT: ${{ vars.PROVISIONER_ENDPOINT || 'https://clawdepl-provisioner-production.up.railway.app' }}
+          AUTH_ENDPOINT: ${{ vars.AUTH_ENDPOINT || 'https://clawdepl-auth.vercel.app' }}
         run: |
           EXT=""
           if [ "$GOOS" = "windows" ]; then

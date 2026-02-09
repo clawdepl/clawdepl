@@ -25,10 +25,10 @@ var (
 	ConvexEndpoint = "https://colorless-gull-839.convex.site"
 
 	// ProvisionerEndpoint is the provisioner service URL for sandbox management
-	ProvisionerEndpoint = "https://moltyverse-provisioner-production.up.railway.app"
+	ProvisionerEndpoint = "https://clawdepl-provisioner-production.up.railway.app"
 
 	// AuthEndpoint is the authentication service URL (Better Auth)
-	AuthEndpoint = "https://molty-companions.vercel.app"
+	AuthEndpoint = "https://clawdepl-auth.vercel.app"
 )
 
 // Runtime information (not set via ldflags)
