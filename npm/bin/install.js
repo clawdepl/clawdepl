@@ -163,14 +163,14 @@ async function downloadBinary() {
   const binaryPath = path.join(binDir, binaryName);
 
   // Skip if binary already exists
-  if (fs.existsSync(binaryPath)) {
+  if (fs.existsSync(binaryPath) && fs.statSync(binaryPath).isFile()) {
     console.log("clawdepl binary already installed.");
     return;
   }
 
   // Check for local development binary (in project root)
   const devBinary = path.join(__dirname, "..", "..", binaryName);
-  if (fs.existsSync(devBinary)) {
+  if (fs.existsSync(devBinary) && fs.statSync(devBinary).isFile()) {
     console.log("Using local development binary.");
     fs.copyFileSync(devBinary, binaryPath);
     fs.chmodSync(binaryPath, 0o755);
