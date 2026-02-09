@@ -59,7 +59,7 @@ func runStatus(cmd *cobra.Command, args []string) error {
 
 func formatStatusDetailed(state string) string {
 	switch state {
-	case "running", "ready":
+	case "running", "ready", "active":
 		return "● Running"
 	case "stopped":
 		return "○ Stopped"

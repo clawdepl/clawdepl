@@ -231,9 +231,7 @@ func (m NewInstanceModel) handleEnter() (tea.Model, tea.Cmd) {
 		token := strings.TrimSpace(m.tokenInput.Value())
 		token = strings.ReplaceAll(token, "\n", "")
 		token = strings.ReplaceAll(token, "\r", "")
-		if token == "" {
-			return m, nil
-		}
+		// Allow empty token for testing (will use MiniMax free tier)
 		m.result.ClaudeToken = token
 		m.step = stepPurpose
 		m.tokenInput.Blur()

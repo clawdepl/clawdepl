@@ -223,16 +223,38 @@ type ActionResponse struct {
 	Error   string `json:"error,omitempty"`
 }
 
-// Molty represents a Molty (AI agent) — used by list (future endpoint)
-type Molty struct {
-	ID        string  `json:"id"`
-	Name      string  `json:"name"`
-	Status    string  `json:"status"`
-	SandboxID string  `json:"sandboxId,omitempty"`
-	CreatedAt float64 `json:"createdAt"`
+// Bot represents a bot returned by the list-bots endpoint
+type Bot struct {
+	ID        string `json:"id"`
+	Name      string `json:"name"`
+	SandboxID string `json:"sandbox_id"`
+	State     string `json:"state"`
+	CreatedAt string `json:"created_at"`
+}
+
+// ListBotsResponse represents the response from listing bots
+type ListBotsResponse struct {
+	Bots []Bot `json:"bots"`
 }
 
 // ========== API Methods ==========
+
+// ListBots returns all bots for the authenticated user via POST /list-bots
+func (c *Client) ListBots(ctx context.Context) ([]Bot, error) {
+	url := fmt.Sprintf("%s/list-bots", c.apiURL)
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, map[string]string{})
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := parseResponse[ListBotsResponse](resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return result.Bots, nil
+}
 
 // CreateSandbox creates a new sandbox via POST /create-sandbox
 func (c *Client) CreateSandbox(ctx context.Context, name, openclawConfig, moltyPrompt string) (*CreateSandboxResponse, error) {
