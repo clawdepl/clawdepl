@@ -340,9 +340,9 @@ func (c *Client) ListMoltys(ctx context.Context) ([]Molty, error) {
 
 // ========== Provisioner API Methods ==========
 
-// ProvisionAsync starts async provisioning of a new sandbox
+// ProvisionAsync starts async provisioning of a new sandbox via Convex HTTP endpoint
 func (c *Client) ProvisionAsync(ctx context.Context, name, apiKey, vibe string) (*ProvisionResponse, error) {
-	url := fmt.Sprintf("%s/api/provision/async", c.provisionerURL)
+	url := fmt.Sprintf("%s/api/provision", c.convexURL)
 
 	req := &ProvisionRequest{
 		UserID:    c.userID,
@@ -362,9 +362,9 @@ func (c *Client) ProvisionAsync(ctx context.Context, name, apiKey, vibe string) 
 	return parseResponse[ProvisionResponse](resp)
 }
 
-// GetStatus gets the status of a sandbox
+// GetStatus gets the status of a sandbox via Convex HTTP endpoint
 func (c *Client) GetStatus(ctx context.Context, sandboxID string) (*StatusResponse, error) {
-	url := fmt.Sprintf("%s/api/status/%s", c.provisionerURL, sandboxID)
+	url := fmt.Sprintf("%s/api/provision/status/%s", c.convexURL, sandboxID)
 
 	resp, err := c.doRequest(ctx, http.MethodGet, url, nil)
 	if err != nil {
@@ -374,9 +374,9 @@ func (c *Client) GetStatus(ctx context.Context, sandboxID string) (*StatusRespon
 	return parseResponse[StatusResponse](resp)
 }
 
-// StartSandbox starts a stopped sandbox
+// StartSandbox starts a stopped sandbox via Convex HTTP endpoint
 func (c *Client) StartSandbox(ctx context.Context, sandboxID string) (*ActionResponse, error) {
-	url := fmt.Sprintf("%s/api/start/%s", c.provisionerURL, sandboxID)
+	url := fmt.Sprintf("%s/api/provision/start/%s", c.convexURL, sandboxID)
 
 	resp, err := c.doRequest(ctx, http.MethodPost, url, nil)
 	if err != nil {
@@ -386,9 +386,9 @@ func (c *Client) StartSandbox(ctx context.Context, sandboxID string) (*ActionRes
 	return parseResponse[ActionResponse](resp)
 }
 
-// StopSandbox stops a running sandbox
+// StopSandbox stops a running sandbox via Convex HTTP endpoint
 func (c *Client) StopSandbox(ctx context.Context, sandboxID string) (*ActionResponse, error) {
-	url := fmt.Sprintf("%s/api/stop/%s", c.provisionerURL, sandboxID)
+	url := fmt.Sprintf("%s/api/provision/stop/%s", c.convexURL, sandboxID)
 
 	resp, err := c.doRequest(ctx, http.MethodPost, url, nil)
 	if err != nil {
@@ -398,9 +398,9 @@ func (c *Client) StopSandbox(ctx context.Context, sandboxID string) (*ActionResp
 	return parseResponse[ActionResponse](resp)
 }
 
-// Deprovision deletes a sandbox
+// Deprovision deletes a sandbox via Convex HTTP endpoint
 func (c *Client) Deprovision(ctx context.Context, sandboxID string) (*DeprovisionResponse, error) {
-	url := fmt.Sprintf("%s/api/deprovision", c.provisionerURL)
+	url := fmt.Sprintf("%s/api/provision/deprovision", c.convexURL)
 
 	req := &DeprovisionRequest{
 		SandboxID: sandboxID,

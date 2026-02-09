@@ -136,7 +136,7 @@ func NewNewInstanceModel(opts ...NewInstanceOption) NewInstanceModel {
 	// Skip name step if name was provided
 	if m.initialName != "" {
 		m.step = stepClaudeToken
-		m.inputs[1].Focus()
+		m.tokenInput.Focus()
 	} else {
 		m.inputs[0].Focus()
 	}
