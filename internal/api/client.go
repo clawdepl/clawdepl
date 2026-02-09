@@ -8,6 +8,7 @@ import (
 	"sync"
 	"time"
 
+	"github.com/moltyverse/clawdpl/internal/buildinfo"
 	"github.com/moltyverse/clawdpl/internal/config"
 )
 
@@ -24,10 +25,27 @@ type Config struct {
 	Timeout time.Duration
 }
 
+// endpointOverride is set by cmd package for debug builds
+var endpointOverride string
+
+// SetEndpointOverride sets the endpoint override (called from cmd package in debug builds)
+func SetEndpointOverride(endpoint string) {
+	endpointOverride = endpoint
+}
+
+// GetEffectiveEndpoint returns the API endpoint to use.
+// Priority: endpointOverride (debug builds) > buildinfo.DefaultEndpoint
+func GetEffectiveEndpoint() string {
+	if endpointOverride != "" {
+		return endpointOverride
+	}
+	return buildinfo.DefaultEndpoint
+}
+
 // DefaultConfig returns the default API client configuration
 func DefaultConfig() *Config {
 	return &Config{
-		BaseURL: "https://api.clawdpl.dev",
+		BaseURL: GetEffectiveEndpoint(),
 		Timeout: 30 * time.Second,
 	}
 }

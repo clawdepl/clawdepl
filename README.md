@@ -84,14 +84,40 @@ clawdpl status
 
 | Command | Description |
 |---------|-------------|
-| `init <name>` | Create a new OpenClaw project |
-| `deploy` | Deploy your project to hosted infrastructure |
-| `status` | Check the status of your instances |
-| `logs` | View logs from your running instances |
-| `destroy` | Tear down an instance |
-| `config` | Manage configuration settings |
+| `login` | Authenticate with clawdpl.dev |
+| `logout` | Clear stored credentials |
+| `new [name]` | Create a new OpenClaw instance |
+| `list` | List all deployed instances |
+| `status <name>` | Check the status of an instance |
+| `start <name>` | Start an instance |
+| `stop <name>` | Stop an instance |
+| `delete <name>` | Delete an instance |
+| `version` | Print version and build information |
 
 Run `clawdpl --help` for a complete list of commands and options.
+
+### Version Command
+
+The `version` command displays detailed build information:
+
+```bash
+# Human-readable output
+clawdpl version
+
+# JSON output for scripting
+clawdpl version --json
+```
+
+Example output:
+
+```
+clawdpl v1.2.3
+  commit:   abc1234 (abc1234567890...)
+  built:    2026-02-08T12:34:56Z
+  mode:     prod
+  platform: linux/amd64
+  go:       go1.21.0
+```
 
 ## Configuration
 
@@ -115,7 +141,11 @@ default_region: us-east-1
 clawdpl/
 ├── cmd/                    # CLI commands (Cobra)
 ├── internal/
-│   └── api/               # OpenClaw API client
+│   ├── api/               # OpenClaw API client
+│   ├── auth/              # Authentication logic
+│   ├── buildinfo/         # Build metadata (version, commit, etc.)
+│   ├── config/            # Configuration and credentials
+│   └── tui/               # Terminal UI components
 ├── npm/                   # npm package wrapper
 ├── python/                # PyPI package wrapper
 ├── scripts/               # Build and test scripts
@@ -139,8 +169,11 @@ The CLI is built in Go for performance and cross-platform compatibility. The npm
 ### Building
 
 ```bash
-# Build the binary
+# Build the binary (production)
 make build
+
+# Build with debug flags enabled
+make build-debug
 
 # Build for all platforms
 make build-all
@@ -177,6 +210,9 @@ make test-pipx
 # Build and copy binary to wrappers for local testing
 make dev
 
+# Build debug binary and copy to wrappers
+make dev-debug
+
 # Clean development binaries
 make dev-clean
 ```
@@ -190,6 +226,21 @@ go run . --help
 # Or build and run
 make build && ./clawdpl --help
 ```
+
+### Debug Builds
+
+Debug builds include additional flags for development and testing purposes. These flags are **completely absent** in production builds—they don't appear in `--help` and cannot be used.
+
+To create a debug build:
+
+```bash
+make build-debug
+```
+
+Debug builds can be identified by running `clawdpl version`, which will show `mode: debug` instead of `mode: prod`.
+
+Debug-only flags include:
+- `--unsafe-endpoint`: Override the API endpoint URL (for testing against staging/local servers)
 
 ## Releasing
 

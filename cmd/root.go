@@ -4,15 +4,9 @@ import (
 	"fmt"
 	"os"
 
+	"github.com/moltyverse/clawdpl/internal/buildinfo"
 	"github.com/moltyverse/clawdpl/internal/config"
 	"github.com/spf13/cobra"
-)
-
-var (
-	// Version is set at build time
-	Version = "0.1.0"
-	// Commit is set at build time
-	Commit = "dev"
 )
 
 var rootCmd = &cobra.Command{
@@ -38,7 +32,7 @@ Instance management:
 
 For more information about a command, run:
   clawdpl <command> --help`,
-	Version: fmt.Sprintf("%s (commit: %s)", Version, Commit),
+	Version: fmt.Sprintf("%s (commit: %s)", buildinfo.Version, buildinfo.Commit),
 	RunE:    runRoot,
 }
 

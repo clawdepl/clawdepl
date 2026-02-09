@@ -68,7 +68,17 @@ jobs:
           OUTPUT_DIR="dist/clawdpl_${VERSION}_${GOOS}_${GOARCH}"
           mkdir -p "$OUTPUT_DIR"
           
-          go build -ldflags "-s -w -X github.com/moltyverse/clawdpl/cmd.Version=${VERSION} -X github.com/moltyverse/clawdpl/cmd.Commit=${GITHUB_SHA::7}" \
+          # Build metadata
+          COMMIT="${GITHUB_SHA::7}"
+          COMMIT_FULL="${GITHUB_SHA}"
+          DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
+          
+          # Build with full metadata injection
+          go build -ldflags "-s -w \
+            -X github.com/moltyverse/clawdpl/internal/buildinfo.Version=${VERSION} \
+            -X github.com/moltyverse/clawdpl/internal/buildinfo.Commit=${COMMIT} \
+            -X github.com/moltyverse/clawdpl/internal/buildinfo.CommitFull=${COMMIT_FULL} \
+            -X github.com/moltyverse/clawdpl/internal/buildinfo.Date=${DATE}" \
             -o "${OUTPUT_DIR}/clawdpl${EXT}" .
           
           # Create tarball
@@ -193,9 +203,6 @@ jobs:
           sed -i "s/version = \".*\"/version = \"$VERSION\"/" python/pyproject.toml
           sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" python/clawdpl/cli.py
           sed -i "s/__version__ = \".*\"/__version__ = \"$VERSION\"/" python/clawdpl/__init__.py
-          
-          # Update Go version
-          sed -i "s/Version = \".*\"/Version = \"$VERSION\"/" cmd/root.go
 
       - name: Commit version updates
         run: |
