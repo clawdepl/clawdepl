@@ -7,8 +7,18 @@ func HasUnsafeToken() bool {
 	return false
 }
 
-// HasUnsafeEndpoint always returns false in production builds
-func HasUnsafeEndpoint() bool {
+// HasUnsafeProvisionerEndpoint always returns false in production builds
+func HasUnsafeProvisionerEndpoint() bool {
+	return false
+}
+
+// HasUnsafeConvexEndpoint always returns false in production builds
+func HasUnsafeConvexEndpoint() bool {
+	return false
+}
+
+// HasUnsafeAuthEndpoint always returns false in production builds
+func HasUnsafeAuthEndpoint() bool {
 	return false
 }
 

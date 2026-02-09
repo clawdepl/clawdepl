@@ -34,14 +34,26 @@ type ClientConfig struct {
 
 // Endpoint overrides for debug builds
 var (
-	endpointOverride string
-	tokenOverride    string
-	userIDOverride   string
+	provisionerEndpointOverride string
+	convexEndpointOverride      string
+	authEndpointOverride        string
+	tokenOverride               string
+	userIDOverride              string
 )
 
-// SetEndpointOverride sets the provisioner endpoint override (called from cmd package in debug builds)
-func SetEndpointOverride(endpoint string) {
-	endpointOverride = endpoint
+// SetProvisionerEndpointOverride sets the provisioner endpoint override (called from cmd package in debug builds)
+func SetProvisionerEndpointOverride(endpoint string) {
+	provisionerEndpointOverride = endpoint
+}
+
+// SetConvexEndpointOverride sets the Convex endpoint override (called from cmd package in debug builds)
+func SetConvexEndpointOverride(endpoint string) {
+	convexEndpointOverride = endpoint
+}
+
+// SetAuthEndpointOverride sets the auth endpoint override (called from cmd package in debug builds)
+func SetAuthEndpointOverride(endpoint string) {
+	authEndpointOverride = endpoint
 }
 
 // SetTokenOverride sets the auth token override (called from cmd package in debug builds)
@@ -56,15 +68,26 @@ func SetUserIDOverride(userID string) {
 
 // GetEffectiveProvisionerEndpoint returns the provisioner endpoint to use
 func GetEffectiveProvisionerEndpoint() string {
-	if endpointOverride != "" {
-		return endpointOverride
+	if provisionerEndpointOverride != "" {
+		return provisionerEndpointOverride
 	}
 	return buildinfo.ProvisionerEndpoint
 }
 
 // GetEffectiveConvexEndpoint returns the Convex endpoint to use
 func GetEffectiveConvexEndpoint() string {
+	if convexEndpointOverride != "" {
+		return convexEndpointOverride
+	}
 	return buildinfo.ConvexEndpoint
+}
+
+// GetEffectiveAuthEndpoint returns the auth endpoint to use
+func GetEffectiveAuthEndpoint() string {
+	if authEndpointOverride != "" {
+		return authEndpointOverride
+	}
+	return buildinfo.AuthEndpoint
 }
 
 // HasTokenOverride returns true if a token override is set
