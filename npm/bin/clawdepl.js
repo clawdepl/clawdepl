@@ -57,7 +57,7 @@ function run() {
       console.error("Install the binary using one of these methods:");
       console.error("");
       console.error("  # Install from source (requires Go 1.21+):");
-      console.error("  go install github.com/moltyverse/clawdepl@latest");
+      console.error("  go install github.com/clawdepl/clawdepl@latest");
       console.error("");
       console.error("  # Or set CLAWDPL_BINARY_PATH to point to the binary:");
       console.error("  export CLAWDPL_BINARY_PATH=/path/to/clawdepl");

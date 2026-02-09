@@ -5,9 +5,9 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/moltyverse/clawdepl/internal/api"
-	"github.com/moltyverse/clawdepl/internal/config"
-	"github.com/moltyverse/clawdepl/internal/tui"
+	"github.com/clawdepl/clawdepl/internal/api"
+	"github.com/clawdepl/clawdepl/internal/config"
+	"github.com/clawdepl/clawdepl/internal/tui"
 	"github.com/spf13/cobra"
 )
 

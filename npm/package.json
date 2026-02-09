@@ -15,19 +15,19 @@
     "agents",
     "orchestrator",
     "cli",
-    "moltyverse",
+    "clawdepl",
     "clawdepl"
   ],
-  "author": "Moltyverse",
+  "author": "clawdepl",
   "license": "MIT",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/moltyverse/clawdepl.git"
+    "url": "git+https://github.com/clawdepl/clawdepl.git"
   },
   "bugs": {
-    "url": "https://github.com/moltyverse/clawdepl/issues"
+    "url": "https://github.com/clawdepl/clawdepl/issues"
   },
-  "homepage": "https://github.com/moltyverse/clawdepl#readme",
+  "homepage": "https://github.com/clawdepl/clawdepl#readme",
   "engines": {
     "node": ">=16.0.0"
   },

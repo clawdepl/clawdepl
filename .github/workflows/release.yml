@@ -79,13 +79,13 @@ jobs:
           
           # Build with full metadata and endpoint injection
           go build -ldflags "-s -w \
-            -X github.com/moltyverse/clawdepl/internal/buildinfo.Version=${VERSION} \
-            -X github.com/moltyverse/clawdepl/internal/buildinfo.Commit=${COMMIT} \
-            -X github.com/moltyverse/clawdepl/internal/buildinfo.CommitFull=${COMMIT_FULL} \
-            -X github.com/moltyverse/clawdepl/internal/buildinfo.Date=${DATE} \
-            -X github.com/moltyverse/clawdepl/internal/buildinfo.ConvexEndpoint=${CONVEX_ENDPOINT} \
-            -X github.com/moltyverse/clawdepl/internal/buildinfo.ProvisionerEndpoint=${PROVISIONER_ENDPOINT} \
-            -X github.com/moltyverse/clawdepl/internal/buildinfo.AuthEndpoint=${AUTH_ENDPOINT}" \
+            -X github.com/clawdepl/clawdepl/internal/buildinfo.Version=${VERSION} \
+            -X github.com/clawdepl/clawdepl/internal/buildinfo.Commit=${COMMIT} \
+            -X github.com/clawdepl/clawdepl/internal/buildinfo.CommitFull=${COMMIT_FULL} \
+            -X github.com/clawdepl/clawdepl/internal/buildinfo.Date=${DATE} \
+            -X github.com/clawdepl/clawdepl/internal/buildinfo.ConvexEndpoint=${CONVEX_ENDPOINT} \
+            -X github.com/clawdepl/clawdepl/internal/buildinfo.ProvisionerEndpoint=${PROVISIONER_ENDPOINT} \
+            -X github.com/clawdepl/clawdepl/internal/buildinfo.AuthEndpoint=${AUTH_ENDPOINT}" \
             -o "${OUTPUT_DIR}/clawdepl${EXT}" .
           
           # Create tarball

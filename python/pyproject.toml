@@ -10,7 +10,7 @@ readme = "README.md"
 license = "MIT"
 requires-python = ">=3.8"
 authors = [
-    { name = "Moltyverse", email = "hello@moltyverse.com" }
+    { name = "clawdepl", email = "hello@clawdepl.dev" }
 ]
 keywords = [
     "openclaw",
@@ -18,7 +18,7 @@ keywords = [
     "agents",
     "orchestrator",
     "cli",
-    "moltyverse",
+    "clawdepl",
     "clawdepl"
 ]
 classifiers = [
@@ -45,10 +45,10 @@ dependencies = [
 clawdepl = "clawdepl.cli:main"
 
 [project.urls]
-Homepage = "https://github.com/moltyverse/clawdepl"
-Documentation = "https://github.com/moltyverse/clawdepl#readme"
-Repository = "https://github.com/moltyverse/clawdepl.git"
-Issues = "https://github.com/moltyverse/clawdepl/issues"
+Homepage = "https://github.com/clawdepl/clawdepl"
+Documentation = "https://github.com/clawdepl/clawdepl#readme"
+Repository = "https://github.com/clawdepl/clawdepl.git"
+Issues = "https://github.com/clawdepl/clawdepl/issues"
 
 [tool.hatch.build.targets.wheel]
 packages = ["clawdepl"]

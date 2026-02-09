@@ -8,7 +8,7 @@ const { execSync, spawn } = require("child_process");
 const zlib = require("zlib");
 
 const VERSION = require("../package.json").version;
-const REPO = "moltyverse/clawdepl";
+const REPO = "clawdepl/clawdepl";
 
 /**
  * Get platform-specific binary info
@@ -199,7 +199,7 @@ async function downloadBinary() {
     console.warn("  - You're on an unsupported platform");
     console.warn("");
     console.warn("The CLI will look for 'clawdepl' in your PATH at runtime.");
-    console.warn("Install from source: go install github.com/moltyverse/clawdepl@latest");
+    console.warn("Install from source: go install github.com/clawdepl/clawdepl@latest");
     console.warn("");
     // Don't fail the install - the wrapper will handle missing binary at runtime
   }

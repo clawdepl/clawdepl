@@ -4,7 +4,7 @@
 [![Go Version](https://img.shields.io/badge/Go-1.21+-00ADD8?logo=go)](https://go.dev/)
 [![npm](https://img.shields.io/npm/v/clawdepl?logo=npm)](https://www.npmjs.com/package/clawdepl)
 [![PyPI](https://img.shields.io/pypi/v/clawdepl?logo=python)](https://pypi.org/project/clawdepl/)
-[![CI](https://github.com/moltyverse/clawdepl/actions/workflows/ci.yml/badge.svg)](https://github.com/moltyverse/clawdepl/actions/workflows/ci.yml)
+[![CI](https://github.com/clawdepl/clawdepl/actions/workflows/ci.yml/badge.svg)](https://github.com/clawdepl/clawdepl/actions/workflows/ci.yml)
 
 Create and manage [OpenClaw](https://openclaw.io) AI Agent orchestrator instances on hosted infrastructure—instantly.
 
@@ -53,13 +53,13 @@ pip install clawdepl
 ### Go
 
 ```bash
-go install github.com/moltyverse/clawdepl@latest
+go install github.com/clawdepl/clawdepl@latest
 ```
 
 ### From Source
 
 ```bash
-git clone https://github.com/moltyverse/clawdepl.git
+git clone https://github.com/clawdepl/clawdepl.git
 cd clawdepl
 make build
 ```
@@ -338,8 +338,8 @@ docs: update installation instructions
 ## Support
 
 - **Documentation**: [docs.openclaw.io](https://docs.openclaw.io)
-- **Issues**: [GitHub Issues](https://github.com/moltyverse/clawdepl/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/moltyverse/clawdepl/discussions)
+- **Issues**: [GitHub Issues](https://github.com/clawdepl/clawdepl/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/clawdepl/clawdepl/discussions)
 
 ## License
 
@@ -347,4 +347,4 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ---
 
-Built with care by [Moltyverse](https://moltyverse.com)
+Built with care by [clawdepl](https://clawdepl.dev)

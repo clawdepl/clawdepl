@@ -2,7 +2,7 @@
 
 Create and manage OpenClaw AI Agent orchestrator instances from the command line.
 
-This is the PyPI distribution of clawdepl. For full documentation, see the [main repository](https://github.com/moltyverse/clawdepl).
+This is the PyPI distribution of clawdepl. For full documentation, see the [main repository](https://github.com/clawdepl/clawdepl).
 
 ## Quick Start (No Install)
 
@@ -58,4 +58,4 @@ Supported platforms:
 
 ## License
 
-MIT - see [LICENSE](https://github.com/moltyverse/clawdepl/blob/main/LICENSE)
+MIT - see [LICENSE](https://github.com/clawdepl/clawdepl/blob/main/LICENSE)

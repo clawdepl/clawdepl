@@ -15,7 +15,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/moltyverse/clawdepl/internal/config"
+	"github.com/clawdepl/clawdepl/internal/config"
 )
 
 const (

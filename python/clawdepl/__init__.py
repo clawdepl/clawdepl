@@ -6,7 +6,7 @@ For pipx users: `pipx run clawdepl --help`
 """
 
 __version__ = "0.1.0"
-__author__ = "Moltyverse"
+__author__ = "clawdepl"
 
 from clawdepl.cli import main
 

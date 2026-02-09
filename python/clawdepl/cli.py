@@ -23,7 +23,7 @@ from typing import Optional
 # Version must match the Go binary version
 __version__ = "0.1.0"
 
-REPO = "moltyverse/clawdepl"
+REPO = "clawdepl/clawdepl"
 
 
 def get_platform_info() -> tuple[str, str, str]:
@@ -195,7 +195,7 @@ def main() -> int:
         print("Install the binary using one of these methods:", file=sys.stderr)
         print("", file=sys.stderr)
         print("  # Install from source (requires Go 1.21+):", file=sys.stderr)
-        print("  go install github.com/moltyverse/clawdepl@latest", file=sys.stderr)
+        print("  go install github.com/clawdepl/clawdepl@latest", file=sys.stderr)
         print("", file=sys.stderr)
         print("  # Or set CLAWDPL_BINARY_PATH:", file=sys.stderr)
         print("  export CLAWDPL_BINARY_PATH=/path/to/clawdepl", file=sys.stderr)

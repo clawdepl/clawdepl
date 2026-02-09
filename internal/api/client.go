@@ -1,4 +1,4 @@
-// Package api provides the client for interacting with the MoltyVerse hosted infrastructure API.
+// Package api provides the client for interacting with the clawdepl hosted infrastructure API.
 package api
 
 import (
@@ -10,11 +10,11 @@ import (
 	"net/http"
 	"time"
 
-	"github.com/moltyverse/clawdepl/internal/buildinfo"
-	"github.com/moltyverse/clawdepl/internal/config"
+	"github.com/clawdepl/clawdepl/internal/buildinfo"
+	"github.com/clawdepl/clawdepl/internal/config"
 )
 
-// Client represents the MoltyVerse API client
+// Client represents the clawdepl API client
 type Client struct {
 	convexURL       string
 	provisionerURL  string
@@ -117,7 +117,7 @@ func DefaultConfig() *ClientConfig {
 	}
 }
 
-// NewClient creates a new MoltyVerse API client
+// NewClient creates a new clawdepl API client
 func NewClient(cfg *ClientConfig) (*Client, error) {
 	if cfg == nil {
 		cfg = DefaultConfig()

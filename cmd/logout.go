@@ -3,8 +3,8 @@ package cmd
 import (
 	"fmt"
 
-	"github.com/moltyverse/clawdepl/internal/auth"
-	"github.com/moltyverse/clawdepl/internal/config"
+	"github.com/clawdepl/clawdepl/internal/auth"
+	"github.com/clawdepl/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 

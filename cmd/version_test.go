@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/moltyverse/clawdepl/internal/buildinfo"
+	"github.com/clawdepl/clawdepl/internal/buildinfo"
 )
 
 func TestVersionInfo(t *testing.T) {

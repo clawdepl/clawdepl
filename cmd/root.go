@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/moltyverse/clawdepl/internal/buildinfo"
-	"github.com/moltyverse/clawdepl/internal/config"
+	"github.com/clawdepl/clawdepl/internal/buildinfo"
+	"github.com/clawdepl/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 

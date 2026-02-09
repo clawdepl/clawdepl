@@ -3,7 +3,7 @@
 # Version from environment or default
 VERSION ?= dev
 BINARY_NAME := clawdepl
-GO_MODULE := github.com/moltyverse/clawdepl
+GO_MODULE := github.com/clawdepl/clawdepl
 
 # Build directories
 DIST_DIR := dist
