@@ -8,6 +8,15 @@
 *.dylib
 /dist/
 /bin/
+
+# Development binaries in wrapper packages
+npm/bin/clawdepl
+npm/bin/clawdepl.exe
+python/clawdepl/clawdepl
+python/clawdepl/clawdepl.exe
+
+# Workspace files
+*.code-workspace
 hidden-docs/
 .env
 
