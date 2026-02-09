@@ -282,10 +282,27 @@ func (c *Client) ListMoltys(ctx context.Context) ([]Molty, error) {
 	if err != nil {
 		return nil, err
 	}
+	defer resp.Body.Close()
 
-	result, err := parseResponse[MoltysResponse](resp)
+	body, err := io.ReadAll(resp.Body)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("failed to read response body: %w", err)
+	}
+
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(body))
+	}
+
+	// Try to unmarshal as array first (API returns raw array)
+	var moltys []Molty
+	if err := json.Unmarshal(body, &moltys); err == nil {
+		return moltys, nil
+	}
+
+	// Fall back to wrapped object format
+	var result MoltysResponse
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
 	return result.Moltys, nil

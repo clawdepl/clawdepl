@@ -227,6 +227,50 @@ go run . --help
 make build && ./clawdpl --help
 ```
 
+### Manual Testing of npm/Python Wrappers
+
+After building with `make dev` or `make dev-debug`, you can manually test the wrappers:
+
+**npm wrapper:**
+
+```bash
+# Test the npm wrapper directly
+cd npm && node bin/clawdpl.js --version
+
+# Or use npm link for global testing
+cd npm && npm link
+clawdpl --version  # Now available globally
+npm unlink -g clawdpl  # Cleanup
+```
+
+**Python wrapper:**
+
+```bash
+# Test the Python wrapper directly
+cd python && python -m clawdpl.cli --version
+
+# Or install in development mode
+cd python && pip install -e .
+clawdpl --version  # Now available globally
+pip uninstall clawdpl  # Cleanup
+```
+
+**Using make targets:**
+
+```bash
+# Automated npm wrapper test
+make test-npm
+
+# Automated Python wrapper test
+make test-python
+
+# Test npx execution (packs and runs via npx)
+make test-npx
+
+# Test pipx execution
+make test-pipx
+```
+
 ### Debug Builds
 
 Debug builds include additional flags for development and testing purposes. These flags are **completely absent** in production builds—they don't appear in `--help` and cannot be used.
