@@ -68,7 +68,7 @@ func runList(cmd *cobra.Command, args []string) error {
 
 	for _, molty := range moltys {
 		status := formatStatus(molty.Status)
-		created := formatTimestamp(molty.CreatedAt)
+		created := formatTimestamp(int64(molty.CreatedAt))
 		sandboxID := molty.SandboxID
 		if sandboxID == "" {
 			sandboxID = "-"

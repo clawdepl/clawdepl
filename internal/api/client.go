@@ -8,6 +8,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/clawdepl/clawdepl/internal/buildinfo"
@@ -203,12 +204,13 @@ func parseResponse[T any](resp *http.Response) (*T, error) {
 
 // Molty represents a Molty (AI agent) from the Convex backend
 type Molty struct {
-	ID         string `json:"id"`
-	Name       string `json:"name"`
-	Status     string `json:"status"`
-	SandboxID  string `json:"sandboxId,omitempty"`
-	GatewayURL string `json:"gatewayUrl,omitempty"`
-	CreatedAt  int64  `json:"createdAt"`
+	ID         string  `json:"id"`
+	Name       string  `json:"name"`
+	Status     string  `json:"status"`
+	SandboxID  string  `json:"sandboxId,omitempty"`
+	GatewayURL string  `json:"gatewayUrl,omitempty"`
+	CreatedAt  float64 `json:"createdAt"`
+	OwnerID    string  `json:"ownerId,omitempty"`
 }
 
 // ProvisionRequest represents a request to provision a new sandbox
@@ -274,11 +276,30 @@ type MoltysResponse struct {
 
 // ========== Convex API Methods ==========
 
-// ListMoltys lists all moltys for the authenticated user (via Convex)
+// ListMoltys lists all moltys for the authenticated user (via Convex query API)
 func (c *Client) ListMoltys(ctx context.Context) ([]Molty, error) {
-	url := fmt.Sprintf("%s/api/moltys", c.convexURL)
+	// Use Convex's public query API endpoint (different from HTTP routes)
+	// The .site URL is for HTTP routes, .cloud URL is for direct query calls
+	convexCloudURL := strings.Replace(c.convexURL, ".convex.site", ".convex.cloud", 1)
+	url := fmt.Sprintf("%s/api/query", convexCloudURL)
 
-	resp, err := c.doRequest(ctx, http.MethodGet, url, nil)
+	// Convex query API format: POST with {"path":"module:function","args":{}}
+	queryBody := map[string]interface{}{
+		"path": "moltys:list",
+		"args": map[string]interface{}{},
+	}
+	jsonBody, err := json.Marshal(queryBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal query body: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(jsonBody))
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
+	}
+	req.Header.Set("Content-Type", "application/json")
+
+	resp, err := c.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -293,19 +314,28 @@ func (c *Client) ListMoltys(ctx context.Context) ([]Molty, error) {
 		return nil, fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(body))
 	}
 
-	// Try to unmarshal as array first (API returns raw array)
-	var moltys []Molty
-	if err := json.Unmarshal(body, &moltys); err == nil {
-		return moltys, nil
+	// Convex query API returns {"status":"success","value":[...]}
+	var queryResponse struct {
+		Status string  `json:"status"`
+		Value  []Molty `json:"value"`
 	}
-
-	// Fall back to wrapped object format
-	var result MoltysResponse
-	if err := json.Unmarshal(body, &result); err != nil {
+	if err := json.Unmarshal(body, &queryResponse); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
-	return result.Moltys, nil
+	if queryResponse.Status != "success" {
+		return nil, fmt.Errorf("query failed with status: %s", queryResponse.Status)
+	}
+
+	// Filter by ownerId client-side
+	var userMoltys []Molty
+	for _, m := range queryResponse.Value {
+		if m.OwnerID == c.userID {
+			userMoltys = append(userMoltys, m)
+		}
+	}
+
+	return userMoltys, nil
 }
 
 // ========== Provisioner API Methods ==========
