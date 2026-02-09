@@ -143,9 +143,12 @@ Changes that require documentation updates:
 ## Commit Message Rules
 
 - **Never mention AI tools** in commit messages - no references to Cursor, Claude, Copilot, ChatGPT, or any AI assistant
-- **Never add Co-authored-by lines** for AI tools (e.g., `Co-authored-by: Cursor <cursoragent@cursor.com>`)
 - Commits should read as if written by a human developer
 - Follow conventional commit format as specified in `.cursor/rules/commit-messages.mdc`
+- **Post-commit cleanup**: After every commit, immediately amend to remove any auto-added Co-authored-by lines:
+  ```bash
+  git log -1 --format='%B' | grep -v '^Co-authored-by:' | git commit --amend -F -
+  ```
 
 ## Core Principles
 - **Simplicity First**: Make every change as simple as possible. Impact minimal code.
