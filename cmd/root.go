@@ -38,6 +38,7 @@ Instance management:
   clawdepl status <name>      Show instance status
   clawdepl start <name>       Start an instance
   clawdepl stop <name>        Stop an instance
+  clawdepl ssh <name>         SSH into a running instance
   clawdepl delete <name>      Delete an instance
 
 For more information about a command, run:

@@ -237,6 +237,28 @@ type ListBotsResponse struct {
 	Bots []Bot `json:"bots"`
 }
 
+// SSHTerminalRequest represents a request to the sandbox-terminal-url endpoint
+type SSHTerminalRequest struct {
+	SandboxID        string `json:"sandbox_id"`
+	Action           string `json:"action"` // "create-ssh" or "revoke-ssh"
+	ExpiresInMinutes int    `json:"expires_in_minutes,omitempty"`
+	SSHToken         string `json:"ssh_token,omitempty"`
+}
+
+// CreateSSHResponse represents the response from creating SSH access
+type CreateSSHResponse struct {
+	SSHToken         string `json:"ssh_token"`
+	SSHCommand       string `json:"ssh_command"` // "ssh token@ssh.app.daytona.io"
+	ExpiresInMinutes int    `json:"expires_in_minutes"`
+	SandboxID        string `json:"sandbox_id"`
+}
+
+// RevokeSSHResponse represents the response from revoking SSH access
+type RevokeSSHResponse struct {
+	Success   bool   `json:"success"`
+	SandboxID string `json:"sandbox_id"`
+}
+
 // ========== API Methods ==========
 
 // ListBots returns all bots for the authenticated user via POST /list-bots
@@ -371,4 +393,40 @@ func (c *Client) WaitForReady(ctx context.Context, sandboxID string, onProgress 
 			}
 		}
 	}
+}
+
+// CreateSSH creates SSH access to a sandbox via POST /sandbox-terminal-url with action "create-ssh"
+func (c *Client) CreateSSH(ctx context.Context, sandboxID string, expiresInMinutes int) (*CreateSSHResponse, error) {
+	url := fmt.Sprintf("%s/sandbox-terminal-url", c.apiURL)
+
+	req := &SSHTerminalRequest{
+		SandboxID:        sandboxID,
+		Action:           "create-ssh",
+		ExpiresInMinutes: expiresInMinutes,
+	}
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[CreateSSHResponse](resp)
+}
+
+// RevokeSSH revokes SSH access to a sandbox via POST /sandbox-terminal-url with action "revoke-ssh"
+func (c *Client) RevokeSSH(ctx context.Context, sandboxID, sshToken string) (*RevokeSSHResponse, error) {
+	url := fmt.Sprintf("%s/sandbox-terminal-url", c.apiURL)
+
+	req := &SSHTerminalRequest{
+		SandboxID: sandboxID,
+		Action:    "revoke-ssh",
+		SSHToken:  sshToken,
+	}
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[RevokeSSHResponse](resp)
 }

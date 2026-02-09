@@ -221,6 +221,35 @@ clawdepl delete sandbox_abc123 -y        # Delete without confirmation
 clawdepl delete sandbox_1 sandbox_2      # Delete multiple instances
 ```
 
+#### `clawdepl ssh <sandbox_name>`
+
+SSH into a running Molty instance by name or sandbox ID.
+
+Automatically provisions temporary SSH credentials (valid for 60 minutes), connects to the sandbox interactively, and revokes the credentials when the session ends. The sandbox must be in a running state to establish SSH access.
+
+**Requirements:**
+- OpenSSH client installed on your system
+- Instance must be running (use `clawdepl start` if stopped)
+
+**Examples:**
+
+```bash
+clawdepl ssh my-agent           # SSH by instance name
+clawdepl ssh sandbox_abc123     # SSH by sandbox ID
+```
+
+**Behavior:**
+- Provisions temporary SSH token (expires in 60 minutes)
+- Opens interactive SSH session
+- Automatically revokes token on session exit or Ctrl+C
+- If revoke fails, token auto-expires after 60 minutes
+
+**Error cases:**
+- Not logged in → Prompts to run `clawdepl login`
+- Instance not found → Suggests `clawdepl list`
+- Instance stopped → Suggests `clawdepl start <name>`
+- SSH client missing → Shows installation instructions
+
 ---
 
 ### Utility Commands
@@ -285,6 +314,7 @@ clawdepl completion powershell > clawdepl.ps1
 | `clawdepl start <id>` | - | Start an instance |
 | `clawdepl stop <id>` | - | Stop an instance |
 | `clawdepl delete <id>` | - | Delete instance(s) |
+| `clawdepl ssh <name>` | - | SSH into running instance |
 | `clawdepl version` | - | Show version info |
 | `clawdepl completion` | - | Generate shell completions |
 

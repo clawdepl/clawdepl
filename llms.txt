@@ -43,6 +43,7 @@ Methods:
 - `clawdepl start <sandbox_id>` - Start stopped instance
 - `clawdepl stop <sandbox_id>` - Stop running instance
 - `clawdepl delete <sandbox_id>` - Delete instance(s)
+- `clawdepl ssh <name>` - SSH into running instance (auto-provisions temp credentials)
 
 ### Utility
 - `clawdepl version` - Show version and build info
@@ -94,6 +95,7 @@ clawdepl list
 clawdepl status <sandbox_id>
 clawdepl stop <sandbox_id>
 clawdepl start <sandbox_id>
+clawdepl ssh my-agent
 clawdepl delete <sandbox_id> -y
 ```
 
