@@ -24,6 +24,16 @@ Quick start:
   clawdepl new [name]         Create a new instance
   clawdepl list               List all instances
 
+Authentication:
+  clawdepl auth login         Authenticate with clawdepl.dev
+  clawdepl auth logout        Sign out and clear credentials
+  clawdepl auth status        Show current account info
+
+  Shortcuts:
+    clawdepl login            Alias for 'auth login'
+    clawdepl logout           Alias for 'auth logout'
+    clawdepl account          Alias for 'auth status'
+
 Instance management:
   clawdepl status <name>      Show instance status
   clawdepl start <name>       Start an instance

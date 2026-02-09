@@ -10,13 +10,17 @@ import (
 
 var logoutCmd = &cobra.Command{
 	Use:   "logout",
-	Short: "Log out from clawdepl.dev",
+	Short: "Log out from clawdepl.dev (alias for 'auth logout')",
 	Long: `Log out from clawdepl.dev and clear stored credentials.
+
+This command is an alias for 'clawdepl auth logout'.
 
 This removes the credentials file from ~/.clawdepl/credentials.json.
 
 Example:
-  clawdepl logout`,
+  clawdepl logout
+
+See also: clawdepl auth logout`,
 	RunE: runLogout,
 }
 

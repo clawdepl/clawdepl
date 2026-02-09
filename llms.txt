@@ -1,0 +1,117 @@
+# clawdepl
+
+> CLI tool for creating and managing OpenClaw AI Agent orchestrator instances on hosted infrastructure.
+
+## Overview
+
+clawdepl enables you to deploy, configure, and scale AI agent workflows with a single command. It connects to clawdepl.dev to provision and manage Molty (AI agent) instances running on cloud infrastructure.
+
+## Installation
+
+npm: `npm install -g clawdepl`
+pip: `pip install clawdepl`
+
+## Authentication
+
+Credentials stored at: ~/.clawdepl/credentials.json
+
+Methods:
+- OAuth browser flow (default)
+- OAuth no-browser (manual URL)
+- Token-based (for CI/CD)
+- API key
+
+## Commands
+
+### Setup
+- `clawdepl` - Interactive setup wizard (login + create instance)
+
+### Authentication
+- `clawdepl auth login` - Authenticate with clawdepl.dev
+- `clawdepl auth logout` - Sign out and clear credentials
+- `clawdepl auth status` - Show current account information
+
+### Authentication Shortcuts (Aliases)
+- `clawdepl login` - Alias for `auth login`
+- `clawdepl logout` - Alias for `auth logout`
+- `clawdepl account` - Alias for `auth status`
+
+### Instance Management
+- `clawdepl new [name]` - Create new Molty instance
+- `clawdepl list` (alias: `ls`) - List all instances
+- `clawdepl status <sandbox_id>` - Show instance status
+- `clawdepl start <sandbox_id>` - Start stopped instance
+- `clawdepl stop <sandbox_id>` - Stop running instance
+- `clawdepl delete <sandbox_id>` - Delete instance(s)
+
+### Utility
+- `clawdepl version` - Show version and build info
+- `clawdepl completion <shell>` - Generate shell completions
+
+## Command Details
+
+### clawdepl auth login
+Flags:
+- `--api-key` - Use API key authentication
+- `--info` - Show current login status
+- `--no-browser` - Print URL instead of opening browser
+- `--token <token>` - Use pre-obtained token
+
+### clawdepl auth status / clawdepl account
+Flags:
+- `--json` - Output as JSON
+
+### clawdepl delete
+Flags:
+- `-y, --yes` - Skip confirmation prompt
+
+### clawdepl version
+Flags:
+- `--json` - Output as JSON
+
+## Examples
+
+First-time setup:
+```
+clawdepl
+```
+
+Step-by-step:
+```
+clawdepl login
+clawdepl new my-agent
+clawdepl list
+```
+
+CI/CD authentication:
+```
+clawdepl login --token $CLAWDEPL_TOKEN
+```
+
+Instance management:
+```
+clawdepl list
+clawdepl status <sandbox_id>
+clawdepl stop <sandbox_id>
+clawdepl start <sandbox_id>
+clawdepl delete <sandbox_id> -y
+```
+
+JSON output for scripting:
+```
+clawdepl account --json
+clawdepl version --json
+```
+
+## Global Flags
+
+All commands support:
+- `-h, --help` - Show help
+
+Root command only:
+- `-v, --version` - Show version
+
+## Documentation
+
+Full documentation: https://clawdepl.dev/docs
+GitHub: https://github.com/clawdepl/clawdepl

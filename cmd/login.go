@@ -15,27 +15,34 @@ var (
 	loginInfo      bool
 	loginNoBrowser bool
 	loginAPIKey    bool
+	loginToken     string
 )
 
 var loginCmd = &cobra.Command{
 	Use:   "login",
-	Short: "Authenticate with clawdepl.dev",
+	Short: "Authenticate with clawdepl.dev (alias for 'auth login')",
 	Long: `Authenticate with clawdepl.dev to manage your OpenClaw instances.
+
+This command is an alias for 'clawdepl auth login'.
 
 By default, opens a browser for OAuth authentication. Use flags to change
 the authentication method.
 
 Examples:
-  clawdepl login              # OAuth via browser (default)
-  clawdepl login --no-browser # OAuth without browser (manual token entry)
-  clawdepl login --api-key    # Authenticate with an API key
-  clawdepl login --info       # Show current login status`,
+  clawdepl login                    # OAuth via browser (default)
+  clawdepl login --no-browser       # OAuth without browser (manual token entry)
+  clawdepl login --token YOUR_TOKEN # Authenticate with a pre-obtained token
+  clawdepl login --api-key          # Authenticate with an API key
+  clawdepl login --info             # Show current login status
+
+See also: clawdepl auth login`,
 	RunE: runLogin,
 }
 
 func init() {
 	loginCmd.Flags().BoolVar(&loginInfo, "info", false, "Show current user info")
 	loginCmd.Flags().BoolVar(&loginNoBrowser, "no-browser", false, "Don't open browser, print URL instead")
+	loginCmd.Flags().StringVar(&loginToken, "token", "", "Authenticate with a pre-obtained token")
 	loginCmd.Flags().BoolVar(&loginAPIKey, "api-key", false, "Authenticate with an API key")
 	rootCmd.AddCommand(loginCmd)
 }
@@ -46,7 +53,24 @@ func runLogin(cmd *cobra.Command, args []string) error {
 		return showLoginInfo()
 	}
 
-	// Check if already logged in
+	// Handle --token flag
+	if loginToken != "" {
+		ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+		defer cancel()
+
+		creds, err := auth.LoginWithToken(ctx, loginToken)
+		if err != nil {
+			return fmt.Errorf("login failed: %w", err)
+		}
+
+		fmt.Printf("\n✓ Authenticated successfully\n")
+		if creds.User != nil && creds.User.Email != "unknown" {
+			fmt.Printf("  Logged in as: %s\n", creds.User.Email)
+		}
+		return nil
+	}
+
+	// Check if already logged in (only for interactive flows)
 	if config.IsLoggedIn() {
 		creds, _ := config.LoadCredentials()
 		if creds != nil && creds.User != nil {

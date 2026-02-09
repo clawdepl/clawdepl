@@ -1,3 +1,83 @@
+## Project Architecture
+
+This is a **multi-repo workspace** with three interconnected repositories:
+
+### Repository Structure
+
+```
+clawdepl-repos/
+├── clawdepl/          # THIS REPO - Go CLI tool for managing OpenClaw instances
+├── backend/           # Convex-based backend (provisioning, data storage)
+└── quick-claw-cloud/  # Lovable-based React frontend (OAuth, dashboard UI)
+```
+
+### 1. clawdepl (Current Repo)
+- **Tech**: Go CLI using Cobra
+- **Purpose**: Command-line tool for provisioning and managing OpenClaw instances
+- **Key paths**:
+  - `cmd/` - CLI commands (new, list, delete, start, stop, status, login, logout)
+  - `internal/api/` - Backend API client
+  - `internal/auth/` - Authentication handling
+  - `hidden-docs/` - **API documentation and integration specs** (check here for backend API details)
+    - `api-endpoints.md` - Backend API endpoint reference
+    - `clawdpl-backend-integration-brief-v2.md` - Integration guide
+    - `api-1.json` - API schema
+
+### 2. backend (Sibling: `../backend/`)
+- **Tech**: Convex (serverless backend), TypeScript
+- **Purpose**: Stores all provisioning data, user data, instance management
+- **Key paths**:
+  - `packages/platform/convex/` - Convex functions and schema
+    - `schema.ts` - Database schema
+    - `moltys.ts`, `users.ts`, `verses.ts` - Core data models
+    - `activation.ts` - Instance activation logic
+    - `http.ts` - HTTP endpoints
+  - `packages/provisioner/` - Instance provisioning service
+  - `packages/switchboard/` - Message routing/Discord adapter
+  - `docs/` - Architecture docs, PRDs, API specs
+    - `api/openapi.yaml` - OpenAPI specification
+    - `ARCHITECTURE-*.md` - System architecture docs
+    - `PRD-*.md` - Product requirement docs
+
+### 3. quick-claw-cloud (Sibling: `../quick-claw-cloud/`)
+- **Tech**: React + Vite + Tailwind (Lovable-generated), Supabase
+- **Purpose**: Web dashboard and **OAuth authentication layer**
+- **Key paths**:
+  - `src/pages/` - Main pages (Auth.tsx, CLIAuth.tsx, AppDashboard.tsx)
+  - `src/integrations/supabase/` - Supabase client and types
+  - `supabase/functions/` - Edge functions (webhooks)
+
+### Cross-Repo Dependencies
+
+```
+┌─────────────────┐     OAuth      ┌───────────────────┐
+│  quick-claw-    │◄──────────────►│     clawdepl      │
+│     cloud       │                │      (CLI)        │
+│   (Frontend)    │                └─────────┬─────────┘
+└────────┬────────┘                          │
+         │                                   │ API calls
+         │ Supabase Auth                     │
+         │                                   ▼
+         │                          ┌─────────────────┐
+         └─────────────────────────►│    backend      │
+                                    │   (Convex)      │
+                                    └─────────────────┘
+```
+
+### When to Look Where
+
+| Need to understand...          | Look in...                                      |
+|--------------------------------|-------------------------------------------------|
+| CLI commands & flags           | `clawdepl/cmd/`                                 |
+| Backend API endpoints          | `clawdepl/hidden-docs/`, `backend/docs/api/`    |
+| Database schema                | `backend/packages/platform/convex/schema.ts`   |
+| OAuth/Auth flow                | `quick-claw-cloud/src/pages/Auth.tsx`           |
+| CLI auth integration           | `quick-claw-cloud/src/pages/CLIAuth.tsx`        |
+| Provisioning logic             | `backend/packages/provisioner/`                 |
+| Architecture decisions         | `backend/docs/ARCHITECTURE-*.md`                |
+
+---
+
 ## Workflow Orchestration
 
 ### 1. Plan Mode Default
@@ -44,6 +124,21 @@
 4. **Explain Changes**: High-level summary at each step  
 5. **Document Results**: Add review section to `tasks/todo.md`  
 6. **Capture Lessons**: Update `tasks/lessons.md` after corrections  
+
+## Documentation Requirements
+
+### CLI Documentation Updates
+When making ANY changes to the CLI interface (commands, subcommands, flags, aliases, help text), you MUST update:
+
+1. **`docs/cli-reference.md`** - Full documentation with examples
+2. **`llms.txt`** - Concise LLM-friendly reference
+
+Changes that require documentation updates:
+- Adding/removing/renaming commands or subcommands
+- Adding/removing/changing flags
+- Changing command aliases
+- Modifying help text or descriptions
+- Changing command behavior
 
 ## Core Principles
 - **Simplicity First**: Make every change as simple as possible. Impact minimal code.
