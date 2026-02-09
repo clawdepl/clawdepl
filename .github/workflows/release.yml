@@ -59,6 +59,10 @@ jobs:
           GOOS: ${{ matrix.goos }}
           GOARCH: ${{ matrix.goarch }}
           VERSION: ${{ needs.check-label.outputs.version }}
+          # Endpoint URLs (can be overridden via repository secrets if needed)
+          CONVEX_ENDPOINT: ${{ vars.CONVEX_ENDPOINT || 'https://colorless-gull-839.convex.site' }}
+          PROVISIONER_ENDPOINT: ${{ vars.PROVISIONER_ENDPOINT || 'https://moltyverse-provisioner-production.up.railway.app' }}
+          AUTH_ENDPOINT: ${{ vars.AUTH_ENDPOINT || 'https://molty-companions.vercel.app' }}
         run: |
           EXT=""
           if [ "$GOOS" = "windows" ]; then
@@ -73,12 +77,15 @@ jobs:
           COMMIT_FULL="${GITHUB_SHA}"
           DATE="$(date -u +%Y-%m-%dT%H:%M:%SZ)"
           
-          # Build with full metadata injection
+          # Build with full metadata and endpoint injection
           go build -ldflags "-s -w \
             -X github.com/moltyverse/clawdpl/internal/buildinfo.Version=${VERSION} \
             -X github.com/moltyverse/clawdpl/internal/buildinfo.Commit=${COMMIT} \
             -X github.com/moltyverse/clawdpl/internal/buildinfo.CommitFull=${COMMIT_FULL} \
-            -X github.com/moltyverse/clawdpl/internal/buildinfo.Date=${DATE}" \
+            -X github.com/moltyverse/clawdpl/internal/buildinfo.Date=${DATE} \
+            -X github.com/moltyverse/clawdpl/internal/buildinfo.ConvexEndpoint=${CONVEX_ENDPOINT} \
+            -X github.com/moltyverse/clawdpl/internal/buildinfo.ProvisionerEndpoint=${PROVISIONER_ENDPOINT} \
+            -X github.com/moltyverse/clawdpl/internal/buildinfo.AuthEndpoint=${AUTH_ENDPOINT}" \
             -o "${OUTPUT_DIR}/clawdpl${EXT}" .
           
           # Create tarball

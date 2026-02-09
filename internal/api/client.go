@@ -1,284 +1,394 @@
-// Package api provides the client for interacting with the OpenClaw hosted infrastructure API.
+// Package api provides the client for interacting with the MoltyVerse hosted infrastructure API.
 package api
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
+	"io"
 	"net/http"
-	"sync"
 	"time"
 
 	"github.com/moltyverse/clawdpl/internal/buildinfo"
 	"github.com/moltyverse/clawdpl/internal/config"
 )
 
-// Client represents the OpenClaw API client
+// Client represents the MoltyVerse API client
 type Client struct {
-	baseURL    string
-	httpClient *http.Client
-	creds      *config.Credentials
+	convexURL       string
+	provisionerURL  string
+	httpClient      *http.Client
+	token           string
+	userID          string
 }
 
-// Config holds the configuration for the API client
-type Config struct {
-	BaseURL string
-	Timeout time.Duration
+// ClientConfig holds the configuration for the API client
+type ClientConfig struct {
+	ConvexURL      string
+	ProvisionerURL string
+	Token          string
+	UserID         string
+	Timeout        time.Duration
 }
 
-// endpointOverride is set by cmd package for debug builds
-var endpointOverride string
+// Endpoint overrides for debug builds
+var (
+	endpointOverride string
+	tokenOverride    string
+	userIDOverride   string
+)
 
-// SetEndpointOverride sets the endpoint override (called from cmd package in debug builds)
+// SetEndpointOverride sets the provisioner endpoint override (called from cmd package in debug builds)
 func SetEndpointOverride(endpoint string) {
 	endpointOverride = endpoint
 }
 
-// GetEffectiveEndpoint returns the API endpoint to use.
-// Priority: endpointOverride (debug builds) > buildinfo.DefaultEndpoint
-func GetEffectiveEndpoint() string {
+// SetTokenOverride sets the auth token override (called from cmd package in debug builds)
+func SetTokenOverride(token string) {
+	tokenOverride = token
+}
+
+// SetUserIDOverride sets the user ID override (called from cmd package in debug builds)
+func SetUserIDOverride(userID string) {
+	userIDOverride = userID
+}
+
+// GetEffectiveProvisionerEndpoint returns the provisioner endpoint to use
+func GetEffectiveProvisionerEndpoint() string {
 	if endpointOverride != "" {
 		return endpointOverride
 	}
-	return buildinfo.DefaultEndpoint
+	return buildinfo.ProvisionerEndpoint
+}
+
+// GetEffectiveConvexEndpoint returns the Convex endpoint to use
+func GetEffectiveConvexEndpoint() string {
+	return buildinfo.ConvexEndpoint
+}
+
+// HasTokenOverride returns true if a token override is set
+func HasTokenOverride() bool {
+	return tokenOverride != ""
+}
+
+// GetTokenOverride returns the token override value
+func GetTokenOverride() string {
+	return tokenOverride
+}
+
+// GetUserIDOverride returns the user ID override value
+func GetUserIDOverride() string {
+	if userIDOverride != "" {
+		return userIDOverride
+	}
+	return "debug-user"
 }
 
 // DefaultConfig returns the default API client configuration
-func DefaultConfig() *Config {
-	return &Config{
-		BaseURL: GetEffectiveEndpoint(),
-		Timeout: 30 * time.Second,
+func DefaultConfig() *ClientConfig {
+	return &ClientConfig{
+		ConvexURL:      GetEffectiveConvexEndpoint(),
+		ProvisionerURL: GetEffectiveProvisionerEndpoint(),
+		Timeout:        30 * time.Second,
 	}
 }
 
-// NewClient creates a new OpenClaw API client
-func NewClient(cfg *Config) (*Client, error) {
+// NewClient creates a new MoltyVerse API client
+func NewClient(cfg *ClientConfig) (*Client, error) {
 	if cfg == nil {
 		cfg = DefaultConfig()
 	}
 
+	client := &Client{
+		convexURL:      cfg.ConvexURL,
+		provisionerURL: cfg.ProvisionerURL,
+		httpClient: &http.Client{
+			Timeout: cfg.Timeout,
+		},
+	}
+
+	// Check for token override first (debug builds)
+	if HasTokenOverride() {
+		client.token = GetTokenOverride()
+		client.userID = GetUserIDOverride()
+		return client, nil
+	}
+
+	// Otherwise, load from credentials
 	creds, err := config.LoadCredentials()
 	if err != nil {
 		return nil, fmt.Errorf("failed to load credentials: %w", err)
 	}
 
-	return &Client{
-		baseURL: cfg.BaseURL,
-		creds:   creds,
-		httpClient: &http.Client{
-			Timeout: cfg.Timeout,
-		},
-	}, nil
-}
-
-// NewClientWithCredentials creates a new client with specific credentials
-func NewClientWithCredentials(cfg *Config, creds *config.Credentials) *Client {
-	if cfg == nil {
-		cfg = DefaultConfig()
-	}
-
-	return &Client{
-		baseURL: cfg.BaseURL,
-		creds:   creds,
-		httpClient: &http.Client{
-			Timeout: cfg.Timeout,
-		},
-	}
-}
-
-// Instance represents an OpenClaw instance
-type Instance struct {
-	ID          string    `json:"id"`
-	Name        string    `json:"name"`
-	Status      string    `json:"status"`
-	Region      string    `json:"region"`
-	Purpose     string    `json:"purpose,omitempty"`
-	ClaudeToken string    `json:"claude_token,omitempty"`
-	CreatedAt   time.Time `json:"created_at"`
-	UpdatedAt   time.Time `json:"updated_at"`
-	StartedAt   time.Time `json:"started_at,omitempty"`
-}
-
-// CreateInstanceRequest represents a request to create a new instance
-type CreateInstanceRequest struct {
-	Name        string `json:"name"`
-	ClaudeToken string `json:"claude_token"`
-	Purpose     string `json:"purpose"`
-	Region      string `json:"region,omitempty"`
-}
-
-// Mock data store for development
-var (
-	mockInstances = make(map[string]*Instance)
-	mockMutex     sync.RWMutex
-)
-
-// initMockData initializes some mock instances for testing
-func initMockData() {
-	mockMutex.Lock()
-	defer mockMutex.Unlock()
-
-	if len(mockInstances) == 0 {
-		// Add some sample instances
-		mockInstances["demo-bot"] = &Instance{
-			ID:        "inst_abc123",
-			Name:      "demo-bot",
-			Status:    "running",
-			Region:    "us-east-1",
-			Purpose:   "Customer support automation",
-			CreatedAt: time.Now().Add(-48 * time.Hour),
-			UpdatedAt: time.Now().Add(-1 * time.Hour),
-			StartedAt: time.Now().Add(-24 * time.Hour),
-		}
-		mockInstances["test-agent"] = &Instance{
-			ID:        "inst_def456",
-			Name:      "test-agent",
-			Status:    "stopped",
-			Region:    "eu-west-1",
-			Purpose:   "Testing and development",
-			CreatedAt: time.Now().Add(-72 * time.Hour),
-			UpdatedAt: time.Now().Add(-12 * time.Hour),
+	if creds != nil {
+		client.token = creds.AccessToken
+		if creds.User != nil {
+			client.userID = creds.User.ID
 		}
 	}
+
+	return client, nil
 }
 
-// CreateInstance creates a new OpenClaw instance
-func (c *Client) CreateInstance(ctx context.Context, req *CreateInstanceRequest) (*Instance, error) {
-	initMockData()
-	mockMutex.Lock()
-	defer mockMutex.Unlock()
-
-	// Check if name already exists
-	if _, exists := mockInstances[req.Name]; exists {
-		return nil, fmt.Errorf("instance '%s' already exists", req.Name)
+// doRequest performs an HTTP request with auth headers
+func (c *Client) doRequest(ctx context.Context, method, url string, body interface{}) (*http.Response, error) {
+	var bodyReader io.Reader
+	if body != nil {
+		jsonBody, err := json.Marshal(body)
+		if err != nil {
+			return nil, fmt.Errorf("failed to marshal request body: %w", err)
+		}
+		bodyReader = bytes.NewReader(jsonBody)
 	}
 
-	// Create mock instance
-	instance := &Instance{
-		ID:          fmt.Sprintf("inst_%d", time.Now().UnixNano()%1000000),
-		Name:        req.Name,
-		Status:      "provisioning",
-		Region:      req.Region,
-		Purpose:     req.Purpose,
-		ClaudeToken: req.ClaudeToken,
-		CreatedAt:   time.Now(),
-		UpdatedAt:   time.Now(),
+	req, err := http.NewRequestWithContext(ctx, method, url, bodyReader)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
 
-	if instance.Region == "" {
-		instance.Region = "us-east-1"
+	req.Header.Set("Content-Type", "application/json")
+	if c.token != "" {
+		req.Header.Set("Authorization", "Bearer "+c.token)
 	}
 
-	mockInstances[req.Name] = instance
-	return instance, nil
+	return c.httpClient.Do(req)
 }
 
-// GetInstance retrieves an instance by name
-func (c *Client) GetInstance(ctx context.Context, name string) (*Instance, error) {
-	initMockData()
-	mockMutex.RLock()
-	defer mockMutex.RUnlock()
+// parseResponse parses the JSON response body
+func parseResponse[T any](resp *http.Response) (*T, error) {
+	defer resp.Body.Close()
 
-	instance, exists := mockInstances[name]
-	if !exists {
-		return nil, fmt.Errorf("instance '%s' not found", name)
+	body, err := io.ReadAll(resp.Body)
+	if err != nil {
+		return nil, fmt.Errorf("failed to read response body: %w", err)
 	}
 
-	return instance, nil
+	if resp.StatusCode >= 400 {
+		return nil, fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(body))
+	}
+
+	var result T
+	if err := json.Unmarshal(body, &result); err != nil {
+		return nil, fmt.Errorf("failed to parse response: %w", err)
+	}
+
+	return &result, nil
 }
 
-// ListInstances lists all instances for the authenticated user
-func (c *Client) ListInstances(ctx context.Context) ([]*Instance, error) {
-	initMockData()
-	mockMutex.RLock()
-	defer mockMutex.RUnlock()
+// ========== Data Types ==========
 
-	instances := make([]*Instance, 0, len(mockInstances))
-	for _, inst := range mockInstances {
-		instances = append(instances, inst)
-	}
-
-	return instances, nil
+// Molty represents a Molty (AI agent) from the Convex backend
+type Molty struct {
+	ID         string `json:"id"`
+	Name       string `json:"name"`
+	Status     string `json:"status"`
+	SandboxID  string `json:"sandboxId,omitempty"`
+	GatewayURL string `json:"gatewayUrl,omitempty"`
+	CreatedAt  int64  `json:"createdAt"`
 }
 
-// DeleteInstance deletes an instance by name
-func (c *Client) DeleteInstance(ctx context.Context, name string) error {
-	initMockData()
-	mockMutex.Lock()
-	defer mockMutex.Unlock()
-
-	if _, exists := mockInstances[name]; !exists {
-		return fmt.Errorf("instance '%s' not found", name)
-	}
-
-	delete(mockInstances, name)
-	return nil
+// ProvisionRequest represents a request to provision a new sandbox
+type ProvisionRequest struct {
+	UserID      string      `json:"userId"`
+	MoltyName   string      `json:"moltyName"`
+	APIKey      string      `json:"apiKey"`
+	Personality Personality `json:"personality,omitempty"`
 }
 
-// StartInstance starts an instance
-func (c *Client) StartInstance(ctx context.Context, name string) (*Instance, error) {
-	initMockData()
-	mockMutex.Lock()
-	defer mockMutex.Unlock()
-
-	instance, exists := mockInstances[name]
-	if !exists {
-		return nil, fmt.Errorf("instance '%s' not found", name)
-	}
-
-	if instance.Status == "running" {
-		return nil, fmt.Errorf("instance '%s' is already running", name)
-	}
-
-	instance.Status = "running"
-	instance.StartedAt = time.Now()
-	instance.UpdatedAt = time.Now()
-
-	return instance, nil
+// Personality represents the personality configuration for a Molty
+type Personality struct {
+	Name string `json:"name,omitempty"`
+	Vibe string `json:"vibe,omitempty"`
 }
 
-// StopInstance stops an instance
-func (c *Client) StopInstance(ctx context.Context, name string) (*Instance, error) {
-	initMockData()
-	mockMutex.Lock()
-	defer mockMutex.Unlock()
-
-	instance, exists := mockInstances[name]
-	if !exists {
-		return nil, fmt.Errorf("instance '%s' not found", name)
-	}
-
-	if instance.Status == "stopped" {
-		return nil, fmt.Errorf("instance '%s' is already stopped", name)
-	}
-
-	instance.Status = "stopped"
-	instance.UpdatedAt = time.Now()
-
-	return instance, nil
+// ProvisionResponse represents the response from provisioning
+type ProvisionResponse struct {
+	Success   bool   `json:"success"`
+	SandboxID string `json:"sandboxId"`
+	AuthToken string `json:"authToken,omitempty"`
+	Status    string `json:"status"`
+	Stage     string `json:"stage,omitempty"`
+	Message   string `json:"message,omitempty"`
+	Progress  int    `json:"progress,omitempty"`
 }
 
-// HealthCheck verifies connectivity to the API
+// StatusResponse represents the status of a sandbox
+type StatusResponse struct {
+	SandboxID  string `json:"sandboxId"`
+	MoltyName  string `json:"moltyName,omitempty"`
+	Status     string `json:"status"`
+	Stage      string `json:"stage,omitempty"`
+	Message    string `json:"message,omitempty"`
+	Progress   int    `json:"progress,omitempty"`
+	GatewayURL string `json:"gatewayUrl,omitempty"`
+	AuthToken  string `json:"authToken,omitempty"`
+}
+
+// DeprovisionRequest represents a request to deprovision a sandbox
+type DeprovisionRequest struct {
+	SandboxID string `json:"sandboxId"`
+	UserID    string `json:"userId"`
+}
+
+// DeprovisionResponse represents the response from deprovisioning
+type DeprovisionResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+}
+
+// ActionResponse represents a generic action response (start/stop/restart)
+type ActionResponse struct {
+	Success bool   `json:"success"`
+	Status  string `json:"status,omitempty"`
+	Message string `json:"message,omitempty"`
+}
+
+// MoltysResponse represents the response from listing moltys
+type MoltysResponse struct {
+	Moltys []Molty `json:"moltys"`
+}
+
+// ========== Convex API Methods ==========
+
+// ListMoltys lists all moltys for the authenticated user (via Convex)
+func (c *Client) ListMoltys(ctx context.Context) ([]Molty, error) {
+	url := fmt.Sprintf("%s/api/moltys", c.convexURL)
+
+	resp, err := c.doRequest(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	result, err := parseResponse[MoltysResponse](resp)
+	if err != nil {
+		return nil, err
+	}
+
+	return result.Moltys, nil
+}
+
+// ========== Provisioner API Methods ==========
+
+// ProvisionAsync starts async provisioning of a new sandbox
+func (c *Client) ProvisionAsync(ctx context.Context, name, apiKey, vibe string) (*ProvisionResponse, error) {
+	url := fmt.Sprintf("%s/api/provision/async", c.provisionerURL)
+
+	req := &ProvisionRequest{
+		UserID:    c.userID,
+		MoltyName: name,
+		APIKey:    apiKey,
+		Personality: Personality{
+			Name: name,
+			Vibe: vibe,
+		},
+	}
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[ProvisionResponse](resp)
+}
+
+// GetStatus gets the status of a sandbox
+func (c *Client) GetStatus(ctx context.Context, sandboxID string) (*StatusResponse, error) {
+	url := fmt.Sprintf("%s/api/status/%s", c.provisionerURL, sandboxID)
+
+	resp, err := c.doRequest(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[StatusResponse](resp)
+}
+
+// StartSandbox starts a stopped sandbox
+func (c *Client) StartSandbox(ctx context.Context, sandboxID string) (*ActionResponse, error) {
+	url := fmt.Sprintf("%s/api/start/%s", c.provisionerURL, sandboxID)
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[ActionResponse](resp)
+}
+
+// StopSandbox stops a running sandbox
+func (c *Client) StopSandbox(ctx context.Context, sandboxID string) (*ActionResponse, error) {
+	url := fmt.Sprintf("%s/api/stop/%s", c.provisionerURL, sandboxID)
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, nil)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[ActionResponse](resp)
+}
+
+// Deprovision deletes a sandbox
+func (c *Client) Deprovision(ctx context.Context, sandboxID string) (*DeprovisionResponse, error) {
+	url := fmt.Sprintf("%s/api/deprovision", c.provisionerURL)
+
+	req := &DeprovisionRequest{
+		SandboxID: sandboxID,
+		UserID:    c.userID,
+	}
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[DeprovisionResponse](resp)
+}
+
+// HealthCheck verifies connectivity to the provisioner API
 func (c *Client) HealthCheck(ctx context.Context) error {
-	// Mock: always healthy
+	url := fmt.Sprintf("%s/health", c.provisionerURL)
+
+	resp, err := c.doRequest(ctx, http.MethodGet, url, nil)
+	if err != nil {
+		return err
+	}
+	defer resp.Body.Close()
+
+	if resp.StatusCode != http.StatusOK {
+		return fmt.Errorf("health check failed with status %d", resp.StatusCode)
+	}
+
 	return nil
 }
 
-// WaitForProvisioning waits for an instance to be provisioned (mock: 3 seconds)
-func (c *Client) WaitForProvisioning(ctx context.Context, name string) (*Instance, error) {
-	// Simulate provisioning delay
-	select {
-	case <-time.After(3 * time.Second):
-		// Update instance status
-		mockMutex.Lock()
-		if instance, exists := mockInstances[name]; exists {
-			instance.Status = "running"
-			instance.StartedAt = time.Now()
-			instance.UpdatedAt = time.Now()
-		}
-		mockMutex.Unlock()
+// WaitForProvisioning polls the status endpoint until provisioning is complete
+func (c *Client) WaitForProvisioning(ctx context.Context, sandboxID string, onProgress func(stage string, progress int, message string)) (*StatusResponse, error) {
+	ticker := time.NewTicker(2 * time.Second)
+	defer ticker.Stop()
 
-		return c.GetInstance(ctx, name)
-	case <-ctx.Done():
-		return nil, ctx.Err()
+	for {
+		select {
+		case <-ctx.Done():
+			return nil, ctx.Err()
+		case <-ticker.C:
+			status, err := c.GetStatus(ctx, sandboxID)
+			if err != nil {
+				return nil, err
+			}
+
+			if onProgress != nil {
+				onProgress(status.Stage, status.Progress, status.Message)
+			}
+
+			// Check if provisioning is complete
+			switch status.Status {
+			case "running", "ready":
+				return status, nil
+			case "failed", "error":
+				return nil, fmt.Errorf("provisioning failed: %s", status.Message)
+			}
+			// Continue polling for "provisioning" status
+		}
 	}
 }

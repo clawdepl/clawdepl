@@ -11,12 +11,12 @@ import (
 )
 
 var startCmd = &cobra.Command{
-	Use:   "start <name>",
-	Short: "Start an OpenClaw instance",
-	Long: `Start a stopped OpenClaw instance.
+	Use:   "start <sandbox-id>",
+	Short: "Start a Molty instance",
+	Long: `Start a stopped Molty instance by sandbox ID.
 
 Examples:
-  clawdpl start my-agent`,
+  clawdpl start sandbox_abc123`,
 	Args: cobra.ExactArgs(1),
 	RunE: runStart,
 }
@@ -26,13 +26,13 @@ func init() {
 }
 
 func runStart(cmd *cobra.Command, args []string) error {
-	// Check if logged in
-	if !config.IsLoggedIn() {
+	// Check if logged in (or using unsafe token in debug builds)
+	if !HasUnsafeToken() && !config.IsLoggedIn() {
 		fmt.Println("Not logged in. Run 'clawdpl login' first.")
 		return nil
 	}
 
-	name := args[0]
+	sandboxID := args[0]
 
 	client, err := api.NewClient(nil)
 	if err != nil {
@@ -42,11 +42,15 @@ func runStart(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	instance, err := client.StartInstance(ctx, name)
+	result, err := client.StartSandbox(ctx, sandboxID)
 	if err != nil {
 		return fmt.Errorf("failed to start instance: %w", err)
 	}
 
-	fmt.Printf("✓ Started '%s' (status: %s)\n", instance.Name, instance.Status)
+	if result.Success {
+		fmt.Printf("✓ Started '%s' (status: %s)\n", sandboxID, result.Status)
+	} else {
+		fmt.Printf("✗ Failed to start '%s': %s\n", sandboxID, result.Message)
+	}
 	return nil
 }

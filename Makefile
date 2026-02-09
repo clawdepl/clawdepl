@@ -14,12 +14,20 @@ COMMIT := $(shell git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 COMMIT_FULL := $(shell git rev-parse HEAD 2>/dev/null || echo "unknown")
 DATE := $(shell date -u +"%Y-%m-%dT%H:%M:%SZ")
 
+# Endpoint URLs (configurable via environment for different environments)
+CONVEX_ENDPOINT ?= https://colorless-gull-839.convex.site
+PROVISIONER_ENDPOINT ?= https://moltyverse-provisioner-production.up.railway.app
+AUTH_ENDPOINT ?= https://molty-companions.vercel.app
+
 # ldflags for build-time injection
 LDFLAGS := -ldflags "-s -w \
 	-X $(GO_MODULE)/internal/buildinfo.Version=$(VERSION) \
 	-X $(GO_MODULE)/internal/buildinfo.Commit=$(COMMIT) \
 	-X $(GO_MODULE)/internal/buildinfo.CommitFull=$(COMMIT_FULL) \
-	-X $(GO_MODULE)/internal/buildinfo.Date=$(DATE)"
+	-X $(GO_MODULE)/internal/buildinfo.Date=$(DATE) \
+	-X $(GO_MODULE)/internal/buildinfo.ConvexEndpoint=$(CONVEX_ENDPOINT) \
+	-X $(GO_MODULE)/internal/buildinfo.ProvisionerEndpoint=$(PROVISIONER_ENDPOINT) \
+	-X $(GO_MODULE)/internal/buildinfo.AuthEndpoint=$(AUTH_ENDPOINT)"
 
 # Platforms for cross-compilation
 PLATFORMS := linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64

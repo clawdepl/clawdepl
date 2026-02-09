@@ -67,10 +67,10 @@ func init() {
 // runRoot handles the case when clawdpl is called without arguments
 func runRoot(cmd *cobra.Command, args []string) error {
 	// If no subcommand is provided, run the default flow:
-	// 1. If not logged in, login first
+	// 1. If not logged in (and no unsafe token), login first
 	// 2. Then run the new instance wizard
 
-	if !config.IsLoggedIn() {
+	if !HasUnsafeToken() && !config.IsLoggedIn() {
 		fmt.Println("Welcome to clawdpl!")
 		fmt.Println()
 		fmt.Println("Let's get you set up. First, we need to log you in.")

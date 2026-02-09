@@ -21,8 +21,14 @@ var (
 	// Date is the build date in ISO-8601 format
 	Date = "unknown"
 
-	// DefaultEndpoint is the default API endpoint
-	DefaultEndpoint = "https://api.clawdpl.dev"
+	// ConvexEndpoint is the Convex backend URL for user data and moltys
+	ConvexEndpoint = "https://colorless-gull-839.convex.site"
+
+	// ProvisionerEndpoint is the provisioner service URL for sandbox management
+	ProvisionerEndpoint = "https://moltyverse-provisioner-production.up.railway.app"
+
+	// AuthEndpoint is the authentication service URL (Better Auth)
+	AuthEndpoint = "https://molty-companions.vercel.app"
 )
 
 // Runtime information (not set via ldflags)

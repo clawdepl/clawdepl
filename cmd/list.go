@@ -16,10 +16,10 @@ import (
 var listCmd = &cobra.Command{
 	Use:     "list",
 	Aliases: []string{"ls"},
-	Short:   "List all OpenClaw instances",
-	Long: `List all OpenClaw instances associated with your account.
+	Short:   "List all Molty instances",
+	Long: `List all Molty instances associated with your account.
 
-Displays instance name, status, region, and creation time in a table format.
+Displays instance name, status, sandbox ID, and creation time in a table format.
 
 Examples:
   clawdpl list
@@ -32,8 +32,8 @@ func init() {
 }
 
 func runList(cmd *cobra.Command, args []string) error {
-	// Check if logged in
-	if !config.IsLoggedIn() {
+	// Check if logged in (or using unsafe token in debug builds)
+	if !HasUnsafeToken() && !config.IsLoggedIn() {
 		fmt.Println("Not logged in. Run 'clawdpl login' first.")
 		return nil
 	}
@@ -46,30 +46,34 @@ func runList(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	instances, err := client.ListInstances(ctx)
+	moltys, err := client.ListMoltys(ctx)
 	if err != nil {
 		return fmt.Errorf("failed to list instances: %w", err)
 	}
 
-	if len(instances) == 0 {
+	if len(moltys) == 0 {
 		fmt.Println("No instances found.")
 		fmt.Println("\nCreate your first instance with 'clawdpl new'")
 		return nil
 	}
 
 	// Sort by name
-	sort.Slice(instances, func(i, j int) bool {
-		return instances[i].Name < instances[j].Name
+	sort.Slice(moltys, func(i, j int) bool {
+		return moltys[i].Name < moltys[j].Name
 	})
 
 	// Create table using tabwriter
 	w := tabwriter.NewWriter(os.Stdout, 0, 0, 2, ' ', 0)
-	fmt.Fprintln(w, "NAME\tSTATUS\tREGION\tCREATED")
+	fmt.Fprintln(w, "NAME\tSTATUS\tSANDBOX ID\tCREATED")
 
-	for _, inst := range instances {
-		status := formatStatus(inst.Status)
-		created := formatTime(inst.CreatedAt)
-		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", inst.Name, status, inst.Region, created)
+	for _, molty := range moltys {
+		status := formatStatus(molty.Status)
+		created := formatTimestamp(molty.CreatedAt)
+		sandboxID := molty.SandboxID
+		if sandboxID == "" {
+			sandboxID = "-"
+		}
+		fmt.Fprintf(w, "%s\t%s\t%s\t%s\n", molty.Name, status, sandboxID, created)
 	}
 
 	w.Flush()
@@ -78,24 +82,25 @@ func runList(cmd *cobra.Command, args []string) error {
 
 func formatStatus(status string) string {
 	switch status {
-	case "running":
+	case "running", "ready":
 		return "● running"
 	case "stopped":
 		return "○ stopped"
 	case "provisioning":
 		return "◐ provisioning"
-	case "error":
+	case "error", "failed":
 		return "✗ error"
 	default:
 		return status
 	}
 }
 
-func formatTime(t time.Time) string {
-	if t.IsZero() {
+func formatTimestamp(ts int64) string {
+	if ts == 0 {
 		return "-"
 	}
 
+	t := time.UnixMilli(ts)
 	duration := time.Since(t)
 
 	if duration < time.Hour {

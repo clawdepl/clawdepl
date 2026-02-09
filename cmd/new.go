@@ -13,14 +13,14 @@ import (
 
 var newCmd = &cobra.Command{
 	Use:   "new [name]",
-	Short: "Create a new OpenClaw instance",
-	Long: `Create a new OpenClaw instance with an interactive wizard.
+	Short: "Create a new Molty instance",
+	Long: `Create a new Molty (AI agent) instance with an interactive wizard.
 
 If a name is provided, the wizard will skip the name prompt.
 The wizard will guide you through:
   1. Instance name (if not provided)
   2. Claude API token
-  3. Purpose/description
+  3. Purpose/description (vibe)
 
 Examples:
   clawdpl new              # Interactive wizard
@@ -34,8 +34,8 @@ func init() {
 }
 
 func runNew(cmd *cobra.Command, args []string) error {
-	// Check if logged in
-	if !config.IsLoggedIn() {
+	// Check if logged in (or using unsafe token in debug builds)
+	if !HasUnsafeToken() && !config.IsLoggedIn() {
 		fmt.Println("Not logged in. Run 'clawdpl login' first.")
 		return nil
 	}
@@ -53,23 +53,29 @@ func runNew(cmd *cobra.Command, args []string) error {
 	}
 
 	// Run the wizard
-	result, err := tui.RunNewInstanceWizard(name, func(name, token, purpose string) error {
-		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
+	result, err := tui.RunNewInstanceWizard(name, func(name, apiKey, vibe string) error {
+		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
 
-		// Create the instance
-		_, err := client.CreateInstance(ctx, &api.CreateInstanceRequest{
-			Name:        name,
-			ClaudeToken: token,
-			Purpose:     purpose,
-		})
+		// Start async provisioning
+		provisionResp, err := client.ProvisionAsync(ctx, name, apiKey, vibe)
 		if err != nil {
-			return err
+			return fmt.Errorf("failed to start provisioning: %w", err)
 		}
 
-		// Wait for provisioning (mock: 3 seconds)
-		_, err = client.WaitForProvisioning(ctx, name)
-		return err
+		if !provisionResp.Success {
+			return fmt.Errorf("provisioning failed: %s", provisionResp.Message)
+		}
+
+		// Wait for provisioning to complete
+		_, err = client.WaitForProvisioning(ctx, provisionResp.SandboxID, func(stage string, progress int, message string) {
+			// Progress updates are handled by the TUI spinner
+		})
+		if err != nil {
+			return fmt.Errorf("provisioning failed: %w", err)
+		}
+
+		return nil
 	})
 
 	if err != nil {

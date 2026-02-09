@@ -9,6 +9,7 @@
 /dist/
 /bin/
 
+hidden-docs/
 # Go
 *.o
 *.a

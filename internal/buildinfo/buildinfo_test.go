@@ -1,6 +1,7 @@
 package buildinfo
 
 import (
+	"strings"
 	"testing"
 )
 
@@ -76,11 +77,6 @@ func TestDefaultValues(t *testing.T) {
 		t.Errorf("Name = %q, want %q", Name, "clawdpl")
 	}
 
-	// DefaultEndpoint should be a valid URL
-	if DefaultEndpoint == "" {
-		t.Error("DefaultEndpoint should not be empty")
-	}
-
 	// GoVersion should be set by runtime
 	if GoVersion == "" {
 		t.Error("GoVersion should not be empty")
@@ -92,5 +88,44 @@ func TestDefaultValues(t *testing.T) {
 	}
 	if GOARCH == "" {
 		t.Error("GOARCH should not be empty")
+	}
+}
+
+func TestEndpointDefaults(t *testing.T) {
+	// Test that all endpoint defaults are valid URLs
+	endpoints := map[string]string{
+		"ConvexEndpoint":      ConvexEndpoint,
+		"ProvisionerEndpoint": ProvisionerEndpoint,
+		"AuthEndpoint":        AuthEndpoint,
+	}
+
+	for name, endpoint := range endpoints {
+		if endpoint == "" {
+			t.Errorf("%s should not be empty", name)
+		}
+		if !strings.HasPrefix(endpoint, "https://") {
+			t.Errorf("%s = %q, should start with https://", name, endpoint)
+		}
+	}
+}
+
+func TestConvexEndpoint(t *testing.T) {
+	// Verify the Convex endpoint has expected format
+	if !strings.Contains(ConvexEndpoint, "convex.site") {
+		t.Errorf("ConvexEndpoint = %q, expected to contain 'convex.site'", ConvexEndpoint)
+	}
+}
+
+func TestProvisionerEndpoint(t *testing.T) {
+	// Verify the Provisioner endpoint has expected format
+	if !strings.Contains(ProvisionerEndpoint, "railway.app") {
+		t.Errorf("ProvisionerEndpoint = %q, expected to contain 'railway.app'", ProvisionerEndpoint)
+	}
+}
+
+func TestAuthEndpoint(t *testing.T) {
+	// Verify the Auth endpoint has expected format
+	if !strings.Contains(AuthEndpoint, "vercel.app") {
+		t.Errorf("AuthEndpoint = %q, expected to contain 'vercel.app'", AuthEndpoint)
 	}
 }
