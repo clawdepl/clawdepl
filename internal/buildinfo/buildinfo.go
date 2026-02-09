@@ -21,11 +21,8 @@ var (
 	// Date is the build date in ISO-8601 format
 	Date = "unknown"
 
-	// ConvexEndpoint is the Convex backend URL for user data and moltys
-	ConvexEndpoint = "https://colorless-gull-839.convex.site"
-
-	// ProvisionerEndpoint is the provisioner service URL for sandbox management
-	ProvisionerEndpoint = "https://moltyverse-provisioner-production.up.railway.app"
+	// APIEndpoint is the Supabase edge functions API URL
+	APIEndpoint = "https://ghcvpnixedcjpokvbsep.supabase.co/functions/v1"
 
 	// AuthEndpoint is the authentication service URL (Better Auth)
 	AuthEndpoint = "https://clawdepl-auth.vercel.app"

@@ -48,9 +48,13 @@ func runStart(cmd *cobra.Command, args []string) error {
 	}
 
 	if result.Success {
-		fmt.Printf("✓ Started '%s' (status: %s)\n", sandboxID, result.Status)
+		fmt.Printf("✓ Started '%s'\n", sandboxID)
 	} else {
-		fmt.Printf("✗ Failed to start '%s': %s\n", sandboxID, result.Message)
+		msg := result.Message
+		if msg == "" {
+			msg = result.Error
+		}
+		fmt.Printf("✗ Failed to start '%s': %s\n", sandboxID, msg)
 	}
 	return nil
 }

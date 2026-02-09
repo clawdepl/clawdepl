@@ -42,9 +42,8 @@ type VersionInfo struct {
 	GOOS                string `json:"goos"`
 	GOARCH              string `json:"goarch"`
 	GoVersion           string `json:"go_version"`
-	AuthEndpoint        string `json:"auth_endpoint,omitempty"`
-	ProvisionerEndpoint string `json:"provisioner_endpoint,omitempty"`
-	ConvexEndpoint      string `json:"convex_endpoint,omitempty"`
+	AuthEndpoint string `json:"auth_endpoint,omitempty"`
+	APIEndpoint  string `json:"api_endpoint,omitempty"`
 }
 
 func runVersion(cmd *cobra.Command, args []string) {
@@ -63,8 +62,7 @@ func runVersion(cmd *cobra.Command, args []string) {
 	// Include endpoint info in debug mode
 	if buildinfo.Debug {
 		info.AuthEndpoint = api.GetEffectiveAuthEndpoint()
-		info.ProvisionerEndpoint = api.GetEffectiveProvisionerEndpoint()
-		info.ConvexEndpoint = api.GetEffectiveConvexEndpoint()
+		info.APIEndpoint = api.GetEffectiveAPIEndpoint()
 	}
 
 	if versionJSON {
@@ -110,8 +108,7 @@ func printVersionHuman(info VersionInfo) {
 	// Endpoints (debug mode only)
 	if info.AuthEndpoint != "" {
 		fmt.Printf("\n  endpoints:\n")
-		fmt.Printf("    auth:        %s\n", info.AuthEndpoint)
-		fmt.Printf("    provisioner: %s\n", info.ProvisionerEndpoint)
-		fmt.Printf("    convex:      %s\n", info.ConvexEndpoint)
+		fmt.Printf("    auth: %s\n", info.AuthEndpoint)
+		fmt.Printf("    api:  %s\n", info.APIEndpoint)
 	}
 }

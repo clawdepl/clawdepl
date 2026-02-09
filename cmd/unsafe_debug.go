@@ -9,20 +9,17 @@ import (
 
 // Debug-only unsafe flags
 var (
-	unsafeProvisionerEndpoint string
-	unsafeConvexEndpoint      string
-	unsafeAuthEndpoint        string
-	unsafeToken               string
-	unsafeUser                string
+	unsafeEndpoint     string
+	unsafeAuthEndpoint string
+	unsafeToken        string
+	unsafeUser         string
 )
 
 func init() {
 	// Register debug-only unsafe flags
 	// These flags only exist in debug builds and are completely absent in production
-	rootCmd.PersistentFlags().StringVar(&unsafeProvisionerEndpoint, "unsafe-provisioner-endpoint", "",
-		"[DEBUG] Override the provisioner API endpoint URL")
-	rootCmd.PersistentFlags().StringVar(&unsafeConvexEndpoint, "unsafe-convex-endpoint", "",
-		"[DEBUG] Override the Convex backend endpoint URL")
+	rootCmd.PersistentFlags().StringVar(&unsafeEndpoint, "unsafe-endpoint", "",
+		"[DEBUG] Override the API endpoint URL")
 	rootCmd.PersistentFlags().StringVar(&unsafeAuthEndpoint, "unsafe-auth-endpoint", "",
 		"[DEBUG] Override the authentication service endpoint URL")
 	rootCmd.PersistentFlags().StringVar(&unsafeToken, "unsafe-token", "",
@@ -33,11 +30,8 @@ func init() {
 	// Hook into PreRun to set the overrides before any command runs
 	originalPreRun := rootCmd.PersistentPreRun
 	rootCmd.PersistentPreRun = func(cmd *cobra.Command, args []string) {
-		if unsafeProvisionerEndpoint != "" {
-			api.SetProvisionerEndpointOverride(unsafeProvisionerEndpoint)
-		}
-		if unsafeConvexEndpoint != "" {
-			api.SetConvexEndpointOverride(unsafeConvexEndpoint)
+		if unsafeEndpoint != "" {
+			api.SetAPIEndpointOverride(unsafeEndpoint)
 		}
 		if unsafeAuthEndpoint != "" {
 			api.SetAuthEndpointOverride(unsafeAuthEndpoint)
@@ -59,14 +53,9 @@ func HasUnsafeToken() bool {
 	return unsafeToken != ""
 }
 
-// HasUnsafeProvisionerEndpoint returns true if an unsafe provisioner endpoint override is set
-func HasUnsafeProvisionerEndpoint() bool {
-	return unsafeProvisionerEndpoint != ""
-}
-
-// HasUnsafeConvexEndpoint returns true if an unsafe Convex endpoint override is set
-func HasUnsafeConvexEndpoint() bool {
-	return unsafeConvexEndpoint != ""
+// HasUnsafeEndpoint returns true if an unsafe API endpoint override is set
+func HasUnsafeEndpoint() bool {
+	return unsafeEndpoint != ""
 }
 
 // HasUnsafeAuthEndpoint returns true if an unsafe auth endpoint override is set

@@ -55,7 +55,7 @@ func runDelete(cmd *cobra.Command, args []string) error {
 	// Verify instances exist first by checking status
 	var toDelete []string
 	for _, sandboxID := range args {
-		_, err := client.GetStatus(ctx, sandboxID)
+		_, err := client.CheckSandboxStatus(ctx, sandboxID)
 		if err != nil {
 			fmt.Printf("Warning: sandbox '%s' not found or inaccessible, skipping\n", sandboxID)
 			continue
@@ -95,12 +95,16 @@ func runDelete(cmd *cobra.Command, args []string) error {
 	// Delete instances
 	var deleted, failed int
 	for _, sandboxID := range toDelete {
-		result, err := client.Deprovision(ctx, sandboxID)
+		result, err := client.DeleteSandbox(ctx, sandboxID)
 		if err != nil {
 			fmt.Printf("✗ Failed to delete '%s': %v\n", sandboxID, err)
 			failed++
 		} else if !result.Success {
-			fmt.Printf("✗ Failed to delete '%s': %s\n", sandboxID, result.Message)
+			msg := result.Message
+			if msg == "" {
+				msg = result.Error
+			}
+			fmt.Printf("✗ Failed to delete '%s': %s\n", sandboxID, msg)
 			failed++
 		} else {
 			fmt.Printf("✓ Deleted '%s'\n", sandboxID)

@@ -8,7 +8,6 @@ import (
 	"fmt"
 	"io"
 	"net/http"
-	"strings"
 	"time"
 
 	"github.com/clawdepl/clawdepl/internal/buildinfo"
@@ -17,39 +16,31 @@ import (
 
 // Client represents the clawdepl API client
 type Client struct {
-	convexURL       string
-	provisionerURL  string
-	httpClient      *http.Client
-	token           string
-	userID          string
+	apiURL     string
+	httpClient *http.Client
+	token      string
+	userID     string
 }
 
 // ClientConfig holds the configuration for the API client
 type ClientConfig struct {
-	ConvexURL      string
-	ProvisionerURL string
-	Token          string
-	UserID         string
-	Timeout        time.Duration
+	APIURL  string
+	Token   string
+	UserID  string
+	Timeout time.Duration
 }
 
 // Endpoint overrides for debug builds
 var (
-	provisionerEndpointOverride string
-	convexEndpointOverride      string
-	authEndpointOverride        string
-	tokenOverride               string
-	userIDOverride              string
+	apiEndpointOverride  string
+	authEndpointOverride string
+	tokenOverride        string
+	userIDOverride       string
 )
 
-// SetProvisionerEndpointOverride sets the provisioner endpoint override (called from cmd package in debug builds)
-func SetProvisionerEndpointOverride(endpoint string) {
-	provisionerEndpointOverride = endpoint
-}
-
-// SetConvexEndpointOverride sets the Convex endpoint override (called from cmd package in debug builds)
-func SetConvexEndpointOverride(endpoint string) {
-	convexEndpointOverride = endpoint
+// SetAPIEndpointOverride sets the API endpoint override (called from cmd package in debug builds)
+func SetAPIEndpointOverride(endpoint string) {
+	apiEndpointOverride = endpoint
 }
 
 // SetAuthEndpointOverride sets the auth endpoint override (called from cmd package in debug builds)
@@ -67,20 +58,12 @@ func SetUserIDOverride(userID string) {
 	userIDOverride = userID
 }
 
-// GetEffectiveProvisionerEndpoint returns the provisioner endpoint to use
-func GetEffectiveProvisionerEndpoint() string {
-	if provisionerEndpointOverride != "" {
-		return provisionerEndpointOverride
+// GetEffectiveAPIEndpoint returns the API endpoint to use
+func GetEffectiveAPIEndpoint() string {
+	if apiEndpointOverride != "" {
+		return apiEndpointOverride
 	}
-	return buildinfo.ProvisionerEndpoint
-}
-
-// GetEffectiveConvexEndpoint returns the Convex endpoint to use
-func GetEffectiveConvexEndpoint() string {
-	if convexEndpointOverride != "" {
-		return convexEndpointOverride
-	}
-	return buildinfo.ConvexEndpoint
+	return buildinfo.APIEndpoint
 }
 
 // GetEffectiveAuthEndpoint returns the auth endpoint to use
@@ -112,9 +95,8 @@ func GetUserIDOverride() string {
 // DefaultConfig returns the default API client configuration
 func DefaultConfig() *ClientConfig {
 	return &ClientConfig{
-		ConvexURL:      GetEffectiveConvexEndpoint(),
-		ProvisionerURL: GetEffectiveProvisionerEndpoint(),
-		Timeout:        30 * time.Second,
+		APIURL:  GetEffectiveAPIEndpoint(),
+		Timeout: 30 * time.Second,
 	}
 }
 
@@ -125,8 +107,7 @@ func NewClient(cfg *ClientConfig) (*Client, error) {
 	}
 
 	client := &Client{
-		convexURL:      cfg.ConvexURL,
-		provisionerURL: cfg.ProvisionerURL,
+		apiURL: cfg.APIURL,
 		httpClient: &http.Client{
 			Timeout: cfg.Timeout,
 		},
@@ -202,156 +183,65 @@ func parseResponse[T any](resp *http.Response) (*T, error) {
 
 // ========== Data Types ==========
 
-// Molty represents a Molty (AI agent) from the Convex backend
-type Molty struct {
-	ID         string  `json:"id"`
-	Name       string  `json:"name"`
-	Status     string  `json:"status"`
-	SandboxID  string  `json:"sandboxId,omitempty"`
-	GatewayURL string  `json:"gatewayUrl,omitempty"`
-	CreatedAt  float64 `json:"createdAt"`
-	OwnerID    string  `json:"ownerId,omitempty"`
+// CreateSandboxRequest represents a request to create a new sandbox
+type CreateSandboxRequest struct {
+	Name           string `json:"name"`
+	OpenclawConfig string `json:"openclaw_config"`
+	MoltyPrompt    string `json:"molty_prompt"`
 }
 
-// ProvisionRequest represents a request to provision a new sandbox
-type ProvisionRequest struct {
-	UserID      string      `json:"userId"`
-	MoltyName   string      `json:"moltyName"`
-	APIKey      string      `json:"apiKey"`
-	Personality Personality `json:"personality,omitempty"`
-}
-
-// Personality represents the personality configuration for a Molty
-type Personality struct {
-	Name string `json:"name,omitempty"`
-	Vibe string `json:"vibe,omitempty"`
-}
-
-// ProvisionResponse represents the response from provisioning
-type ProvisionResponse struct {
-	Success   bool   `json:"success"`
-	SandboxID string `json:"sandboxId"`
-	AuthToken string `json:"authToken,omitempty"`
-	Status    string `json:"status"`
-	Stage     string `json:"stage,omitempty"`
-	Message   string `json:"message,omitempty"`
-	Progress  int    `json:"progress,omitempty"`
-}
-
-// StatusResponse represents the status of a sandbox
-type StatusResponse struct {
-	SandboxID  string `json:"sandboxId"`
-	MoltyName  string `json:"moltyName,omitempty"`
-	Status     string `json:"status"`
-	Stage      string `json:"stage,omitempty"`
-	Message    string `json:"message,omitempty"`
-	Progress   int    `json:"progress,omitempty"`
-	GatewayURL string `json:"gatewayUrl,omitempty"`
-	AuthToken  string `json:"authToken,omitempty"`
-}
-
-// DeprovisionRequest represents a request to deprovision a sandbox
-type DeprovisionRequest struct {
-	SandboxID string `json:"sandboxId"`
-	UserID    string `json:"userId"`
-}
-
-// DeprovisionResponse represents the response from deprovisioning
-type DeprovisionResponse struct {
+// CreateSandboxResponse represents the response from creating a sandbox
+type CreateSandboxResponse struct {
 	Success bool   `json:"success"`
-	Message string `json:"message,omitempty"`
+	BotName string `json:"bot_name,omitempty"`
+	Sandbox struct {
+		ID    string `json:"id"`
+		State string `json:"state"`
+	} `json:"sandbox,omitempty"`
+	Error string `json:"error,omitempty"`
 }
 
-// ActionResponse represents a generic action response (start/stop/restart)
+// SandboxExecRequest represents a request to the sandbox-exec endpoint
+type SandboxExecRequest struct {
+	SandboxID string `json:"sandbox_id"`
+	Action    string `json:"action"`
+	SessionID string `json:"session_id,omitempty"`
+	Command   string `json:"command,omitempty"`
+	Timeout   int    `json:"timeout,omitempty"`
+}
+
+// SandboxStatusResponse represents the status check response
+type SandboxStatusResponse struct {
+	State string `json:"state"`
+	Ready bool   `json:"ready"`
+}
+
+// ActionResponse represents a generic action response (start/stop/delete)
 type ActionResponse struct {
 	Success bool   `json:"success"`
-	Status  string `json:"status,omitempty"`
 	Message string `json:"message,omitempty"`
+	Error   string `json:"error,omitempty"`
 }
 
-// MoltysResponse represents the response from listing moltys
-type MoltysResponse struct {
-	Moltys []Molty `json:"moltys"`
+// Molty represents a Molty (AI agent) — used by list (future endpoint)
+type Molty struct {
+	ID        string  `json:"id"`
+	Name      string  `json:"name"`
+	Status    string  `json:"status"`
+	SandboxID string  `json:"sandboxId,omitempty"`
+	CreatedAt float64 `json:"createdAt"`
 }
 
-// ========== Convex API Methods ==========
+// ========== API Methods ==========
 
-// ListMoltys lists all moltys for the authenticated user (via Convex query API)
-func (c *Client) ListMoltys(ctx context.Context) ([]Molty, error) {
-	// Use Convex's public query API endpoint (different from HTTP routes)
-	// The .site URL is for HTTP routes, .cloud URL is for direct query calls
-	convexCloudURL := strings.Replace(c.convexURL, ".convex.site", ".convex.cloud", 1)
-	url := fmt.Sprintf("%s/api/query", convexCloudURL)
+// CreateSandbox creates a new sandbox via POST /create-sandbox
+func (c *Client) CreateSandbox(ctx context.Context, name, openclawConfig, moltyPrompt string) (*CreateSandboxResponse, error) {
+	url := fmt.Sprintf("%s/create-sandbox", c.apiURL)
 
-	// Convex query API format: POST with {"path":"module:function","args":{}}
-	queryBody := map[string]interface{}{
-		"path": "moltys:list",
-		"args": map[string]interface{}{},
-	}
-	jsonBody, err := json.Marshal(queryBody)
-	if err != nil {
-		return nil, fmt.Errorf("failed to marshal query body: %w", err)
-	}
-
-	req, err := http.NewRequestWithContext(ctx, http.MethodPost, url, bytes.NewReader(jsonBody))
-	if err != nil {
-		return nil, fmt.Errorf("failed to create request: %w", err)
-	}
-	req.Header.Set("Content-Type", "application/json")
-
-	resp, err := c.httpClient.Do(req)
-	if err != nil {
-		return nil, err
-	}
-	defer resp.Body.Close()
-
-	body, err := io.ReadAll(resp.Body)
-	if err != nil {
-		return nil, fmt.Errorf("failed to read response body: %w", err)
-	}
-
-	if resp.StatusCode >= 400 {
-		return nil, fmt.Errorf("API error (status %d): %s", resp.StatusCode, string(body))
-	}
-
-	// Convex query API returns {"status":"success","value":[...]}
-	var queryResponse struct {
-		Status string  `json:"status"`
-		Value  []Molty `json:"value"`
-	}
-	if err := json.Unmarshal(body, &queryResponse); err != nil {
-		return nil, fmt.Errorf("failed to parse response: %w", err)
-	}
-
-	if queryResponse.Status != "success" {
-		return nil, fmt.Errorf("query failed with status: %s", queryResponse.Status)
-	}
-
-	// Filter by ownerId client-side
-	var userMoltys []Molty
-	for _, m := range queryResponse.Value {
-		if m.OwnerID == c.userID {
-			userMoltys = append(userMoltys, m)
-		}
-	}
-
-	return userMoltys, nil
-}
-
-// ========== Provisioner API Methods ==========
-
-// ProvisionAsync starts async provisioning of a new sandbox via Convex HTTP endpoint
-func (c *Client) ProvisionAsync(ctx context.Context, name, apiKey, vibe string) (*ProvisionResponse, error) {
-	url := fmt.Sprintf("%s/api/provision", c.convexURL)
-
-	req := &ProvisionRequest{
-		UserID:    c.userID,
-		MoltyName: name,
-		APIKey:    apiKey,
-		Personality: Personality{
-			Name: name,
-			Vibe: vibe,
-		},
+	req := &CreateSandboxRequest{
+		Name:           name,
+		OpenclawConfig: openclawConfig,
+		MoltyPrompt:    moltyPrompt,
 	}
 
 	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
@@ -359,52 +249,16 @@ func (c *Client) ProvisionAsync(ctx context.Context, name, apiKey, vibe string) 
 		return nil, err
 	}
 
-	return parseResponse[ProvisionResponse](resp)
+	return parseResponse[CreateSandboxResponse](resp)
 }
 
-// GetStatus gets the status of a sandbox via Convex HTTP endpoint
-func (c *Client) GetStatus(ctx context.Context, sandboxID string) (*StatusResponse, error) {
-	url := fmt.Sprintf("%s/api/provision/status/%s", c.convexURL, sandboxID)
+// CheckSandboxStatus checks the status of a sandbox via POST /sandbox-exec with action "check-sandbox-status"
+func (c *Client) CheckSandboxStatus(ctx context.Context, sandboxID string) (*SandboxStatusResponse, error) {
+	url := fmt.Sprintf("%s/sandbox-exec", c.apiURL)
 
-	resp, err := c.doRequest(ctx, http.MethodGet, url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return parseResponse[StatusResponse](resp)
-}
-
-// StartSandbox starts a stopped sandbox via Convex HTTP endpoint
-func (c *Client) StartSandbox(ctx context.Context, sandboxID string) (*ActionResponse, error) {
-	url := fmt.Sprintf("%s/api/provision/start/%s", c.convexURL, sandboxID)
-
-	resp, err := c.doRequest(ctx, http.MethodPost, url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return parseResponse[ActionResponse](resp)
-}
-
-// StopSandbox stops a running sandbox via Convex HTTP endpoint
-func (c *Client) StopSandbox(ctx context.Context, sandboxID string) (*ActionResponse, error) {
-	url := fmt.Sprintf("%s/api/provision/stop/%s", c.convexURL, sandboxID)
-
-	resp, err := c.doRequest(ctx, http.MethodPost, url, nil)
-	if err != nil {
-		return nil, err
-	}
-
-	return parseResponse[ActionResponse](resp)
-}
-
-// Deprovision deletes a sandbox via Convex HTTP endpoint
-func (c *Client) Deprovision(ctx context.Context, sandboxID string) (*DeprovisionResponse, error) {
-	url := fmt.Sprintf("%s/api/provision/deprovision", c.convexURL)
-
-	req := &DeprovisionRequest{
+	req := &SandboxExecRequest{
 		SandboxID: sandboxID,
-		UserID:    c.userID,
+		Action:    "check-sandbox-status",
 	}
 
 	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
@@ -412,28 +266,62 @@ func (c *Client) Deprovision(ctx context.Context, sandboxID string) (*Deprovisio
 		return nil, err
 	}
 
-	return parseResponse[DeprovisionResponse](resp)
+	return parseResponse[SandboxStatusResponse](resp)
 }
 
-// HealthCheck verifies connectivity to the provisioner API
-func (c *Client) HealthCheck(ctx context.Context) error {
-	url := fmt.Sprintf("%s/health", c.provisionerURL)
+// StartSandbox starts a stopped sandbox via POST /sandbox-exec with action "start-sandbox"
+func (c *Client) StartSandbox(ctx context.Context, sandboxID string) (*ActionResponse, error) {
+	url := fmt.Sprintf("%s/sandbox-exec", c.apiURL)
 
-	resp, err := c.doRequest(ctx, http.MethodGet, url, nil)
+	req := &SandboxExecRequest{
+		SandboxID: sandboxID,
+		Action:    "start-sandbox",
+	}
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
 	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	if resp.StatusCode != http.StatusOK {
-		return fmt.Errorf("health check failed with status %d", resp.StatusCode)
+		return nil, err
 	}
 
-	return nil
+	return parseResponse[ActionResponse](resp)
 }
 
-// WaitForProvisioning polls the status endpoint until provisioning is complete
-func (c *Client) WaitForProvisioning(ctx context.Context, sandboxID string, onProgress func(stage string, progress int, message string)) (*StatusResponse, error) {
+// StopSandbox stops a running sandbox via POST /sandbox-exec with action "stop-sandbox"
+func (c *Client) StopSandbox(ctx context.Context, sandboxID string) (*ActionResponse, error) {
+	url := fmt.Sprintf("%s/sandbox-exec", c.apiURL)
+
+	req := &SandboxExecRequest{
+		SandboxID: sandboxID,
+		Action:    "stop-sandbox",
+	}
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[ActionResponse](resp)
+}
+
+// DeleteSandbox deletes a sandbox via POST /sandbox-exec with action "delete-sandbox"
+func (c *Client) DeleteSandbox(ctx context.Context, sandboxID string) (*ActionResponse, error) {
+	url := fmt.Sprintf("%s/sandbox-exec", c.apiURL)
+
+	req := &SandboxExecRequest{
+		SandboxID: sandboxID,
+		Action:    "delete-sandbox",
+	}
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[ActionResponse](resp)
+}
+
+// WaitForReady polls CheckSandboxStatus every 2s until the sandbox is ready
+func (c *Client) WaitForReady(ctx context.Context, sandboxID string, onProgress func(state string, ready bool)) (*SandboxStatusResponse, error) {
 	ticker := time.NewTicker(2 * time.Second)
 	defer ticker.Stop()
 
@@ -442,23 +330,23 @@ func (c *Client) WaitForProvisioning(ctx context.Context, sandboxID string, onPr
 		case <-ctx.Done():
 			return nil, ctx.Err()
 		case <-ticker.C:
-			status, err := c.GetStatus(ctx, sandboxID)
+			status, err := c.CheckSandboxStatus(ctx, sandboxID)
 			if err != nil {
 				return nil, err
 			}
 
 			if onProgress != nil {
-				onProgress(status.Stage, status.Progress, status.Message)
+				onProgress(status.State, status.Ready)
 			}
 
-			// Check if provisioning is complete
-			switch status.Status {
-			case "running", "ready":
+			if status.Ready {
 				return status, nil
-			case "failed", "error":
-				return nil, fmt.Errorf("provisioning failed: %s", status.Message)
 			}
-			// Continue polling for "provisioning" status
+
+			// Check for terminal failure states
+			if status.State == "failed" || status.State == "error" {
+				return nil, fmt.Errorf("sandbox entered %s state", status.State)
+			}
 		}
 	}
 }

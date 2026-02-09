@@ -94,9 +94,8 @@ func TestDefaultValues(t *testing.T) {
 func TestEndpointDefaults(t *testing.T) {
 	// Test that all endpoint defaults are valid URLs
 	endpoints := map[string]string{
-		"ConvexEndpoint":      ConvexEndpoint,
-		"ProvisionerEndpoint": ProvisionerEndpoint,
-		"AuthEndpoint":        AuthEndpoint,
+		"APIEndpoint":  APIEndpoint,
+		"AuthEndpoint": AuthEndpoint,
 	}
 
 	for name, endpoint := range endpoints {
@@ -109,17 +108,10 @@ func TestEndpointDefaults(t *testing.T) {
 	}
 }
 
-func TestConvexEndpoint(t *testing.T) {
-	// Verify the Convex endpoint has expected format
-	if !strings.Contains(ConvexEndpoint, "convex.site") {
-		t.Errorf("ConvexEndpoint = %q, expected to contain 'convex.site'", ConvexEndpoint)
-	}
-}
-
-func TestProvisionerEndpoint(t *testing.T) {
-	// Verify the Provisioner endpoint has expected format
-	if !strings.Contains(ProvisionerEndpoint, "railway.app") {
-		t.Errorf("ProvisionerEndpoint = %q, expected to contain 'railway.app'", ProvisionerEndpoint)
+func TestAPIEndpoint(t *testing.T) {
+	// Verify the API endpoint has expected format
+	if !strings.Contains(APIEndpoint, "supabase.co") {
+		t.Errorf("APIEndpoint = %q, expected to contain 'supabase.co'", APIEndpoint)
 	}
 }
 

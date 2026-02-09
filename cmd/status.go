@@ -15,7 +15,7 @@ var statusCmd = &cobra.Command{
 	Short: "Show status of a Molty instance",
 	Long: `Show detailed status information for a Molty instance by sandbox ID.
 
-Displays status, stage, progress, and gateway URL if available.
+Displays sandbox state and readiness.
 
 Examples:
   clawdepl status sandbox_abc123`,
@@ -44,44 +44,30 @@ func runStatus(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	status, err := client.GetStatus(ctx, sandboxID)
+	status, err := client.CheckSandboxStatus(ctx, sandboxID)
 	if err != nil {
 		return fmt.Errorf("failed to get status: %w", err)
 	}
 
 	// Display status
-	fmt.Printf("Sandbox: %s\n", status.SandboxID)
-	if status.MoltyName != "" {
-		fmt.Printf("  Name:     %s\n", status.MoltyName)
-	}
-	fmt.Printf("  Status:   %s\n", formatStatusDetailed(status.Status))
-	if status.Stage != "" {
-		fmt.Printf("  Stage:    %s\n", status.Stage)
-	}
-	if status.Progress > 0 {
-		fmt.Printf("  Progress: %d%%\n", status.Progress)
-	}
-	if status.Message != "" {
-		fmt.Printf("  Message:  %s\n", status.Message)
-	}
-	if status.GatewayURL != "" {
-		fmt.Printf("  Gateway:  %s\n", status.GatewayURL)
-	}
+	fmt.Printf("Sandbox: %s\n", sandboxID)
+	fmt.Printf("  State:  %s\n", formatStatusDetailed(status.State))
+	fmt.Printf("  Ready:  %v\n", status.Ready)
 
 	return nil
 }
 
-func formatStatusDetailed(status string) string {
-	switch status {
+func formatStatusDetailed(state string) string {
+	switch state {
 	case "running", "ready":
 		return "● Running"
 	case "stopped":
 		return "○ Stopped"
-	case "provisioning":
+	case "provisioning", "starting":
 		return "◐ Provisioning"
 	case "error", "failed":
 		return "✗ Error"
 	default:
-		return status
+		return state
 	}
 }

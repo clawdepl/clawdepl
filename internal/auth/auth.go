@@ -3,6 +3,7 @@ package auth
 
 import (
 	"bufio"
+	"bytes"
 	"context"
 	"crypto/rand"
 	_ "embed"
@@ -64,10 +65,16 @@ func openBrowser(url string) error {
 
 // ValidateToken validates a token against the backend and returns user info
 func ValidateToken(ctx context.Context, token string) (*config.Credentials, error) {
-	// Call Convex /api/users/verify with Bearer token
-	verifyURL := fmt.Sprintf("%s/api/users/verify", buildinfo.ConvexEndpoint)
+	// Call POST /verify-token on the Supabase API
+	verifyURL := fmt.Sprintf("%s/verify-token", buildinfo.APIEndpoint)
 
-	req, err := http.NewRequestWithContext(ctx, http.MethodGet, verifyURL, nil)
+	tokenBody := map[string]string{"token": token}
+	jsonBody, err := json.Marshal(tokenBody)
+	if err != nil {
+		return nil, fmt.Errorf("failed to marshal request: %w", err)
+	}
+
+	req, err := http.NewRequestWithContext(ctx, http.MethodPost, verifyURL, bytes.NewReader(jsonBody))
 	if err != nil {
 		return nil, fmt.Errorf("failed to create request: %w", err)
 	}
@@ -88,8 +95,8 @@ func ValidateToken(ctx context.Context, token string) (*config.Credentials, erro
 	}
 
 	if resp.StatusCode != http.StatusOK {
-		// Try to parse error message
 		var errResp struct {
+			Valid bool   `json:"valid"`
 			Error string `json:"error"`
 		}
 		if json.Unmarshal(body, &errResp) == nil && errResp.Error != "" {
@@ -98,25 +105,34 @@ func ValidateToken(ctx context.Context, token string) (*config.Credentials, erro
 		return nil, fmt.Errorf("token validation failed (status %d)", resp.StatusCode)
 	}
 
-	// Parse successful response
+	// Parse successful response: {valid, userId, email, name}
 	var verifyResp struct {
-		User struct {
-			UserID   string `json:"userId"`
-			Username string `json:"username"`
-			Type     string `json:"type"`
-		} `json:"user"`
+		Valid  bool   `json:"valid"`
+		UserID string `json:"userId"`
+		Email  string `json:"email"`
+		Name   string `json:"name"`
 	}
 
 	if err := json.Unmarshal(body, &verifyResp); err != nil {
 		return nil, fmt.Errorf("failed to parse response: %w", err)
 	}
 
+	if !verifyResp.Valid {
+		return nil, fmt.Errorf("token validation failed: token is not valid")
+	}
+
+	// Use email as fallback for name
+	name := verifyResp.Name
+	if name == "" {
+		name = verifyResp.Email
+	}
+
 	creds := &config.Credentials{
 		AccessToken: token,
 		User: &config.User{
-			ID:    verifyResp.User.UserID,
-			Email: verifyResp.User.Username, // Username might be email
-			Name:  verifyResp.User.Username,
+			ID:    verifyResp.UserID,
+			Email: verifyResp.Email,
+			Name:  name,
 		},
 	}
 

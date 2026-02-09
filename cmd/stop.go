@@ -48,9 +48,13 @@ func runStop(cmd *cobra.Command, args []string) error {
 	}
 
 	if result.Success {
-		fmt.Printf("✓ Stopped '%s' (status: %s)\n", sandboxID, result.Status)
+		fmt.Printf("✓ Stopped '%s'\n", sandboxID)
 	} else {
-		fmt.Printf("✗ Failed to stop '%s': %s\n", sandboxID, result.Message)
+		msg := result.Message
+		if msg == "" {
+			msg = result.Error
+		}
+		fmt.Printf("✗ Failed to stop '%s': %s\n", sandboxID, msg)
 	}
 	return nil
 }

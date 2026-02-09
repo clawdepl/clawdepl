@@ -57,18 +57,18 @@ func runNew(cmd *cobra.Command, args []string) error {
 		ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 		defer cancel()
 
-		// Start async provisioning
-		provisionResp, err := client.ProvisionAsync(ctx, name, apiKey, vibe)
+		// Create sandbox via Supabase API
+		createResp, err := client.CreateSandbox(ctx, name, apiKey, vibe)
 		if err != nil {
-			return fmt.Errorf("failed to start provisioning: %w", err)
+			return fmt.Errorf("failed to create sandbox: %w", err)
 		}
 
-		if !provisionResp.Success {
-			return fmt.Errorf("provisioning failed: %s", provisionResp.Message)
+		if !createResp.Success {
+			return fmt.Errorf("sandbox creation failed: %s", createResp.Error)
 		}
 
-		// Wait for provisioning to complete
-		_, err = client.WaitForProvisioning(ctx, provisionResp.SandboxID, func(stage string, progress int, message string) {
+		// Poll until sandbox is ready
+		_, err = client.WaitForReady(ctx, createResp.Sandbox.ID, func(state string, ready bool) {
 			// Progress updates are handled by the TUI spinner
 		})
 		if err != nil {
