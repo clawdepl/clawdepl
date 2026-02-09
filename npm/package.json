@@ -3,7 +3,7 @@
   "version": "0.0.2",
   "description": "Create and manage OpenClaw AI Agent orchestrator instances",
   "bin": {
-    "clawdepl": "./bin/clawdepl.js"
+    "clawdepl": "bin/clawdepl.js"
   },
   "scripts": {
     "postinstall": "node ./bin/install.js",
@@ -44,6 +44,5 @@
     "bin/",
     "README.md",
     "LICENSE"
-  ],
-  "preferGlobal": true
+  ]
 }
