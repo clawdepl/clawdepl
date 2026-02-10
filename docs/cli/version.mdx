@@ -1,0 +1,42 @@
+---
+title: clawdepl version
+description: Print version and build information.
+---
+
+```bash
+clawdepl version [flags]
+```
+
+## Flags
+
+<ParamField path="--json" type="boolean">
+  Output as JSON for scripting.
+</ParamField>
+
+## Output
+
+```bash
+$ clawdepl version
+clawdepl v1.2.3
+  commit:   abc1234 (abc1234567890abcdef...)
+  built:    2026-02-08T12:34:56Z
+  mode:     prod
+  platform: darwin/arm64
+  go:       go1.21.0
+```
+
+### JSON output
+
+```bash
+$ clawdepl version --json
+```
+
+<ResponseField name="name" type="string">Always `"clawdepl"`</ResponseField>
+<ResponseField name="version" type="string">Semantic version or `"dev"`</ResponseField>
+<ResponseField name="commit" type="string">Short commit hash</ResponseField>
+<ResponseField name="commit_full" type="string">Full commit hash</ResponseField>
+<ResponseField name="date" type="string">Build date (ISO 8601)</ResponseField>
+<ResponseField name="mode" type="string">`"prod"` or `"debug"`</ResponseField>
+<ResponseField name="goos" type="string">Operating system</ResponseField>
+<ResponseField name="goarch" type="string">CPU architecture</ResponseField>
+<ResponseField name="go_version" type="string">Go compiler version</ResponseField>

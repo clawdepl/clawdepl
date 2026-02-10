@@ -1,0 +1,135 @@
+---
+title: Authentication
+description: How authentication works across the CLI, SDKs, and API.
+---
+
+## Overview
+
+All clawdepl tools use **Bearer token** authentication. The token is sent as an `Authorization: Bearer <TOKEN>` header on every API request.
+
+There are two token types:
+
+| Type | Source | Expiry |
+|------|--------|--------|
+| **OAuth token** | Browser login via `clawdepl login` | Time-limited |
+| **API key** | Generated in dashboard or via `clawdepl login --api-key` | Never expires |
+
+## Credential storage
+
+All tools share the same credential file:
+
+```
+~/.clawdepl/credentials.json
+```
+
+```json
+{
+  "access_token": "eyJ...",
+  "refresh_token": "",
+  "api_key": "",
+  "user": {
+    "id": "uuid",
+    "email": "you@example.com",
+    "name": "Your Name"
+  },
+  "expires_at": "2026-03-01T00:00:00Z"
+}
+```
+
+<Note>
+The file is created with `0600` permissions (owner read/write only). The parent `~/.clawdepl/` directory uses `0700`.
+</Note>
+
+## Token resolution order
+
+The CLI and SDKs resolve tokens in the same priority order:
+
+<Steps>
+  <Step title="Explicit argument">
+    Token passed directly to the constructor or flag.
+    ```python
+    client = ClawdeplClient(token="your-token")
+    ```
+    ```bash
+    clawdepl login --token YOUR_TOKEN
+    ```
+  </Step>
+
+  <Step title="Environment variable">
+    The `CLAWDEPL_TOKEN` environment variable.
+    ```bash
+    export CLAWDEPL_TOKEN="your-token"
+    ```
+  </Step>
+
+  <Step title="Credentials file">
+    `~/.clawdepl/credentials.json` -- prefers `api_key` over `access_token`.
+  </Step>
+</Steps>
+
+If none are found, an `AuthError` is raised (SDKs) or the CLI prompts you to log in.
+
+## Authentication methods
+
+### OAuth browser flow (default)
+
+```bash
+clawdepl login
+```
+
+1. CLI opens your browser to `https://clawdepl.dev/auth/cli`
+2. You sign in on the web
+3. Browser redirects back to a local callback
+4. CLI stores the token
+
+### OAuth without browser
+
+```bash
+clawdepl login --no-browser
+```
+
+Prints the login URL for you to open manually. After signing in, copy the token from the web page and paste it into the CLI.
+
+### Token-based (CI/CD)
+
+```bash
+clawdepl login --token $CLAWDEPL_TOKEN
+```
+
+Validates the token against the API and stores it. Ideal for CI/CD pipelines.
+
+### API key
+
+```bash
+clawdepl login --api-key
+```
+
+Prompts for an API key interactively. API keys never expire, making them suitable for long-running services.
+
+## Using tokens in SDKs
+
+<CodeGroup>
+```python Python
+# Auto-resolves from env or credentials file
+client = ClawdeplClient()
+
+# Explicit token
+client = ClawdeplClient(token="your-token")
+
+# Environment variable
+# export CLAWDEPL_TOKEN="your-token"
+client = ClawdeplClient()
+```
+
+```typescript TypeScript
+// Auto-resolves from env or credentials file
+const client = new ClawdeplClient();
+
+// Explicit token
+const client = new ClawdeplClient("your-token");
+
+// Environment variable
+// export CLAWDEPL_TOKEN="your-token"
+const client = new ClawdeplClient();
+```
+</CodeGroup>

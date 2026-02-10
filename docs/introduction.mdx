@@ -1,0 +1,58 @@
+---
+title: Introduction
+description: Deploy, manage, and orchestrate AI agents on hosted infrastructure with a single command.
+---
+
+# What is clawdepl?
+
+clawdepl is a developer platform for deploying and managing **OpenClaw AI Agent** instances (called **Moltys**) on cloud infrastructure. It gives you a CLI, SDKs in Python and TypeScript, and a REST API to programmatically create, control, and interact with AI agent sandboxes.
+
+<CardGroup cols={3}>
+  <Card title="CLI" icon="terminal" href="/cli/overview">
+    Create and manage agents from the terminal
+  </Card>
+  <Card title="Python SDK" icon="python" href="/sdk/python/quickstart">
+    Native Python client with sync + async
+  </Card>
+  <Card title="TypeScript SDK" icon="js" href="/sdk/typescript/quickstart">
+    Zero-dependency TypeScript client for Node 18+
+  </Card>
+</CardGroup>
+
+## How it works
+
+Each Molty instance is a cloud sandbox running a Docker container with the OpenClaw agent runtime. You provision instances, execute commands inside them, stream output in real-time, and SSH in for interactive sessions.
+
+```
+You (CLI / SDK / API)
+  |
+  v
+clawdepl API (Supabase Edge Functions)
+  |
+  v
+Daytona Sandbox Runtime
+  |
+  v
+OpenClaw Agent Container
+```
+
+## Key features
+
+- **One-command deploy** -- `clawdepl new my-agent` provisions a fully configured agent sandbox
+- **SSH access** -- Drop into a running instance with `clawdepl ssh my-agent`
+- **Chat interface** -- Send messages directly via `clawdepl chat my-agent "Hello"`
+- **Streaming execution** -- Execute commands and stream output line-by-line via SSE
+- **Programmatic control** -- Full SDK support in Python (sync + async) and TypeScript
+- **Credential interop** -- CLI, SDKs, and CI/CD all share `~/.clawdepl/credentials.json`
+- **Tier-based limits** -- Free plan (2 bots), Pro plan (10 bots)
+
+## Next steps
+
+<CardGroup cols={2}>
+  <Card title="Quickstart" icon="rocket" href="/quickstart">
+    Get up and running in 2 minutes
+  </Card>
+  <Card title="Installation" icon="download" href="/installation">
+    Install via npm, pip, or Go
+  </Card>
+</CardGroup>

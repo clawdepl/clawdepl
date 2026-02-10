@@ -6,17 +6,17 @@ import (
 	"time"
 
 	"github.com/clawdepl/clawdepl/internal/api"
-	"github.com/clawdepl/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
 var stopCmd = &cobra.Command{
-	Use:   "stop <sandbox-id>",
+	Use:   "stop <sandbox-id|name>",
 	Short: "Stop a Molty instance",
-	Long: `Stop a running Molty instance by sandbox ID.
+	Long: `Stop a running Molty instance by sandbox ID or instance name.
 
 Examples:
-  clawdepl stop sandbox_abc123`,
+  clawdepl stop sandbox_abc123
+  clawdepl stop wifey`,
 	Args: cobra.ExactArgs(1),
 	RunE: runStop,
 }
@@ -26,13 +26,9 @@ func init() {
 }
 
 func runStop(cmd *cobra.Command, args []string) error {
-	// Check if logged in (or using unsafe token in debug builds)
-	if !HasUnsafeToken() && !config.IsLoggedIn() {
-		fmt.Println("Not logged in. Run 'clawdepl login' first.")
-		return nil
+	if err := requireLogin(); err != nil {
+		return err
 	}
-
-	sandboxID := args[0]
 
 	client, err := api.NewClient(nil)
 	if err != nil {
@@ -41,6 +37,11 @@ func runStop(cmd *cobra.Command, args []string) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
+	sandboxID, err := resolveSandboxID(ctx, client, args[0])
+	if err != nil {
+		return err
+	}
 
 	result, err := client.StopSandbox(ctx, sandboxID)
 	if err != nil {
@@ -54,7 +55,7 @@ func runStop(cmd *cobra.Command, args []string) error {
 		if msg == "" {
 			msg = result.Error
 		}
-		fmt.Printf("✗ Failed to stop '%s': %s\n", sandboxID, msg)
+		return fmt.Errorf("failed to stop '%s': %s", sandboxID, msg)
 	}
 	return nil
 }

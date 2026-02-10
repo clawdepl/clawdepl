@@ -1,0 +1,50 @@
+---
+title: POST /verify-token
+description: Validate an API token and get user identity.
+---
+
+## Request
+
+```bash
+POST /verify-token
+Authorization: Bearer <TOKEN>
+Content-Type: application/json
+```
+
+No request body required.
+
+## Response
+
+<Tabs>
+  <Tab title="200 — Valid">
+    <ResponseField name="valid" type="boolean">Always `true`.</ResponseField>
+    <ResponseField name="userId" type="string">User UUID.</ResponseField>
+    <ResponseField name="email" type="string">User email address.</ResponseField>
+    <ResponseField name="name" type="string">User display name.</ResponseField>
+
+    ```json
+    {
+      "valid": true,
+      "userId": "550e8400-e29b-41d4-a716-446655440000",
+      "email": "user@example.com",
+      "name": "John Doe"
+    }
+    ```
+  </Tab>
+  <Tab title="401 — Invalid">
+    ```json
+    {
+      "valid": false,
+      "error": "Invalid or revoked token"
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Example
+
+```bash
+curl -X POST https://ghcvpnixedcjpokvbsep.supabase.co/functions/v1/verify-token \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json"
+```

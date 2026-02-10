@@ -6,19 +6,19 @@ import (
 	"time"
 
 	"github.com/clawdepl/clawdepl/internal/api"
-	"github.com/clawdepl/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
 var statusCmd = &cobra.Command{
-	Use:   "status <sandbox-id>",
+	Use:   "status <sandbox-id|name>",
 	Short: "Show status of a Molty instance",
-	Long: `Show detailed status information for a Molty instance by sandbox ID.
+	Long: `Show detailed status information for a Molty instance by sandbox ID or instance name.
 
 Displays sandbox state and readiness.
 
 Examples:
-  clawdepl status sandbox_abc123`,
+  clawdepl status sandbox_abc123
+  clawdepl status wifey`,
 	Args: cobra.ExactArgs(1),
 	RunE: runStatus,
 }
@@ -28,13 +28,9 @@ func init() {
 }
 
 func runStatus(cmd *cobra.Command, args []string) error {
-	// Check if logged in (or using unsafe token in debug builds)
-	if !HasUnsafeToken() && !config.IsLoggedIn() {
-		fmt.Println("Not logged in. Run 'clawdepl login' first.")
-		return nil
+	if err := requireLogin(); err != nil {
+		return err
 	}
-
-	sandboxID := args[0]
 
 	client, err := api.NewClient(nil)
 	if err != nil {
@@ -43,6 +39,11 @@ func runStatus(cmd *cobra.Command, args []string) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
+	sandboxID, err := resolveSandboxID(ctx, client, args[0])
+	if err != nil {
+		return err
+	}
 
 	status, err := client.CheckSandboxStatus(ctx, sandboxID)
 	if err != nil {
@@ -59,7 +60,7 @@ func runStatus(cmd *cobra.Command, args []string) error {
 
 func formatStatusDetailed(state string) string {
 	switch state {
-	case "running", "ready", "active":
+	case "running", "ready", "active", "started":
 		return "● Running"
 	case "stopped":
 		return "○ Stopped"

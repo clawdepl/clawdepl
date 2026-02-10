@@ -1,3 +1,5 @@
+//go:build !simplewizard
+
 // Package tui provides terminal user interface components for clawdepl.
 package tui
 
@@ -35,27 +37,29 @@ var (
 			Foreground(lipgloss.Color("196"))
 )
 
-// NewInstanceResult holds the result of the new instance wizard
+// NewInstanceResult holds the result of the new instance wizard.
 type NewInstanceResult struct {
 	Name        string
+	AuthChoice  string
 	ClaudeToken string
 	Purpose     string
 	Cancelled   bool
 	Error       error
 }
 
-// Step represents a step in the wizard
+// Step represents a step in the wizard.
 type step int
 
 const (
 	stepName step = iota
+	stepAuthChoice
 	stepClaudeToken
 	stepPurpose
 	stepProvisioning
 	stepDone
 )
 
-// NewInstanceModel is the Bubble Tea model for creating a new instance
+// NewInstanceModel is the Bubble Tea model for creating a new instance.
 type NewInstanceModel struct {
 	step         step
 	inputs       []textinput.Model
@@ -66,32 +70,36 @@ type NewInstanceModel struct {
 	initialName  string
 	width        int
 	provisionErr error
+	authChoices  []string
+	authIndex    int
+	tokenHint    string
 	// Callback for provisioning
-	onProvision func(name, token, purpose string) error
+	onProvision func(name, token, authChoice, purpose string) error
 }
 
-// NewInstanceOption is a functional option for NewInstanceModel
+// NewInstanceOption is a functional option for NewInstanceModel.
 type NewInstanceOption func(*NewInstanceModel)
 
-// WithName sets the initial name (skips name step)
+// WithName sets the initial name (skips name step).
 func WithName(name string) NewInstanceOption {
 	return func(m *NewInstanceModel) {
 		m.initialName = name
 	}
 }
 
-// WithProvisionCallback sets the callback for provisioning
-func WithProvisionCallback(fn func(name, token, purpose string) error) NewInstanceOption {
+// WithProvisionCallback sets the callback for provisioning.
+func WithProvisionCallback(fn func(name, token, authChoice, purpose string) error) NewInstanceOption {
 	return func(m *NewInstanceModel) {
 		m.onProvision = fn
 	}
 }
 
-// NewNewInstanceModel creates a new model for the instance creation wizard
+// NewNewInstanceModel creates a new model for the instance creation wizard.
 func NewNewInstanceModel(opts ...NewInstanceOption) NewInstanceModel {
 	m := NewInstanceModel{
-		step:   stepName,
-		inputs: make([]textinput.Model, 1),
+		step:        stepName,
+		inputs:      make([]textinput.Model, 1),
+		authChoices: []string{"anthropic-api-key", "anthropic-setup-token"},
 	}
 
 	// Apply options
@@ -109,9 +117,9 @@ func NewNewInstanceModel(opts ...NewInstanceOption) NewInstanceModel {
 	}
 	m.inputs[0] = nameInput
 
-	// Claude token input (use textarea for better paste/wrap support)
+	// Claude credential input (API key or setup-token).
 	tokenInput := textarea.New()
-	tokenInput.Placeholder = "sk-ant-api03-..."
+	tokenInput.Placeholder = "sk-ant-api03-... (or setup-token)"
 	tokenInput.CharLimit = 512
 	tokenInput.SetWidth(70)
 	tokenInput.SetHeight(3)
@@ -120,7 +128,7 @@ func NewNewInstanceModel(opts ...NewInstanceOption) NewInstanceModel {
 
 	// Purpose input (textarea for multiline)
 	purposeInput := textarea.New()
-	purposeInput.Placeholder = "A helpful assistant that..."
+	purposeInput.Placeholder = "# IDENTITY\n\nYou are...\n"
 	purposeInput.CharLimit = 1024
 	purposeInput.SetWidth(60)
 	purposeInput.SetHeight(4)
@@ -135,8 +143,8 @@ func NewNewInstanceModel(opts ...NewInstanceOption) NewInstanceModel {
 
 	// Skip name step if name was provided
 	if m.initialName != "" {
-		m.step = stepClaudeToken
-		m.tokenInput.Focus()
+		m.result.Name = m.initialName
+		m.step = stepAuthChoice
 	} else {
 		m.inputs[0].Focus()
 	}
@@ -144,17 +152,17 @@ func NewNewInstanceModel(opts ...NewInstanceOption) NewInstanceModel {
 	return m
 }
 
-// Init initializes the model
+// Init initializes the model.
 func (m NewInstanceModel) Init() tea.Cmd {
 	return textinput.Blink
 }
 
-// provisionMsg is sent when provisioning is complete
+// provisionMsg is sent when provisioning is complete.
 type provisionMsg struct {
 	err error
 }
 
-// Update handles messages
+// Update handles messages.
 func (m NewInstanceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 	switch msg := msg.(type) {
 	case tea.KeyMsg:
@@ -177,6 +185,29 @@ func (m NewInstanceModel) Update(msg tea.Msg) (tea.Model, tea.Cmd) {
 		case "tab", "shift+tab":
 			// Don't allow tab navigation, just use enter to proceed
 			return m, nil
+		}
+
+		if m.step == stepAuthChoice {
+			switch msg.String() {
+			case "up", "left":
+				if m.authIndex > 0 {
+					m.authIndex--
+				}
+				return m, nil
+			case "down", "right":
+				if m.authIndex < len(m.authChoices)-1 {
+					m.authIndex++
+				}
+				return m, nil
+			case "1":
+				m.authIndex = 0
+				return m, nil
+			case "2":
+				if len(m.authChoices) > 1 {
+					m.authIndex = 1
+				}
+				return m, nil
+			}
 		}
 
 	case tea.WindowSizeMsg:
@@ -221,17 +252,38 @@ func (m NewInstanceModel) handleEnter() (tea.Model, tea.Cmd) {
 			return m, nil
 		}
 		m.result.Name = name
-		m.step = stepClaudeToken
+		m.step = stepAuthChoice
 		m.inputs[0].Blur()
+		return m, nil
+
+	case stepAuthChoice:
+		m.result.AuthChoice = m.authChoices[m.authIndex]
+		m.step = stepClaudeToken
 		m.tokenInput.Focus()
+		if m.result.AuthChoice == "anthropic-setup-token" {
+			// Manual flow: do not run `claude setup-token` or attempt auto-import.
+			m.tokenInput.Placeholder = "sk-ant-oat01-..."
+			m.tokenHint = "Run: claude setup-token. Then paste the raw token (sk-ant-oat...) and press Enter."
+		} else {
+			m.tokenInput.Placeholder = "sk-ant-api03-..."
+			m.tokenHint = ""
+		}
 		return m, textarea.Blink
 
 	case stepClaudeToken:
-		// Strip any newlines and whitespace from token
+		// Manual flow: accept the raw token only (no blob parsing).
 		token := strings.TrimSpace(m.tokenInput.Value())
 		token = strings.ReplaceAll(token, "\n", "")
 		token = strings.ReplaceAll(token, "\r", "")
-		// Allow empty token for testing (will use MiniMax free tier)
+		if token == "" {
+			if m.result.AuthChoice == "anthropic-setup-token" {
+				m.tokenHint = "Setup-token is required. Paste the raw sk-ant-oat... token and press Enter."
+			} else {
+				m.tokenHint = "An API key is required."
+			}
+			return m, nil
+		}
+		// Token validity is checked before provisioning in cmd/new.go.
 		m.result.ClaudeToken = token
 		m.step = stepPurpose
 		m.tokenInput.Blur()
@@ -260,14 +312,14 @@ func (m NewInstanceModel) handleEnter() (tea.Model, tea.Cmd) {
 func (m NewInstanceModel) startProvisioning() tea.Cmd {
 	return func() tea.Msg {
 		if m.onProvision != nil {
-			err := m.onProvision(m.result.Name, m.result.ClaudeToken, m.result.Purpose)
+			err := m.onProvision(m.result.Name, m.result.ClaudeToken, m.result.AuthChoice, m.result.Purpose)
 			return provisionMsg{err: err}
 		}
 		return provisionMsg{}
 	}
 }
 
-// View renders the UI
+// View renders the UI.
 func (m NewInstanceModel) View() string {
 	var b strings.Builder
 
@@ -283,22 +335,41 @@ func (m NewInstanceModel) View() string {
 		b.WriteString("\n\n")
 		b.WriteString(blurredStyle.Render("Press Enter to continue, Esc to cancel"))
 
-	case stepClaudeToken:
+	case stepAuthChoice:
 		b.WriteString(m.renderCompletedStep("Name", m.result.Name))
 		b.WriteString("\n")
-		b.WriteString(promptStyle.Render("Enter your Claude API token:"))
+		b.WriteString(promptStyle.Render("How do you want to authenticate Anthropic?"))
+		b.WriteString("\n\n")
+		b.WriteString(m.renderAuthChoice())
+		b.WriteString("\n\n")
+		b.WriteString(blurredStyle.Render("Use ↑/↓ (or 1/2), then Enter to continue."))
+
+	case stepClaudeToken:
+		b.WriteString(m.renderCompletedStep("Name", m.result.Name))
+		b.WriteString(m.renderCompletedStep("Auth", humanAuthChoice(m.result.AuthChoice)))
+		b.WriteString("\n")
+		b.WriteString(promptStyle.Render("Enter your Claude credential:"))
 		b.WriteString("\n\n")
 		b.WriteString(m.tokenInput.View())
 		b.WriteString("\n\n")
-		b.WriteString(blurredStyle.Render("Run 'claude setup-token' in a new terminal to get your token."))
+		if m.result.AuthChoice == "anthropic-setup-token" {
+			b.WriteString(blurredStyle.Render("Paste the raw token from: claude setup-token (starts with sk-ant-oat...)."))
+		} else {
+			b.WriteString(blurredStyle.Render("Use an Anthropic API key (starts with sk-ant-...)."))
+		}
 		b.WriteString("\n")
 		b.WriteString(blurredStyle.Render("Your token is stored securely. Press Enter to continue."))
+		if m.tokenHint != "" {
+			b.WriteString("\n")
+			b.WriteString(errorStyle.Render(m.tokenHint))
+		}
 
 	case stepPurpose:
 		b.WriteString(m.renderCompletedStep("Name", m.result.Name))
+		b.WriteString(m.renderCompletedStep("Auth", humanAuthChoice(m.result.AuthChoice)))
 		b.WriteString(m.renderCompletedStep("Token", "••••••••"))
 		b.WriteString("\n")
-		b.WriteString(promptStyle.Render("What is my purpose? Who am I?"))
+		b.WriteString(promptStyle.Render("Write IDENTITY.md (who am I?)"))
 		b.WriteString("\n\n")
 		b.WriteString(m.purposeInput.View())
 		b.WriteString("\n\n")
@@ -306,6 +377,7 @@ func (m NewInstanceModel) View() string {
 
 	case stepProvisioning:
 		b.WriteString(m.renderCompletedStep("Name", m.result.Name))
+		b.WriteString(m.renderCompletedStep("Auth", humanAuthChoice(m.result.AuthChoice)))
 		b.WriteString(m.renderCompletedStep("Token", "••••••••"))
 		b.WriteString(m.renderCompletedStep("Purpose", m.result.Purpose))
 		b.WriteString("\n")
@@ -314,13 +386,17 @@ func (m NewInstanceModel) View() string {
 
 	case stepDone:
 		b.WriteString(m.renderCompletedStep("Name", m.result.Name))
+		b.WriteString(m.renderCompletedStep("Auth", humanAuthChoice(m.result.AuthChoice)))
 		b.WriteString(m.renderCompletedStep("Token", "••••••••"))
 		b.WriteString(m.renderCompletedStep("Purpose", m.result.Purpose))
 		b.WriteString("\n")
 		b.WriteString(successStyle.Render("✓ Done!"))
 		b.WriteString(" Your instance is ready.\n\n")
-		b.WriteString(fmt.Sprintf("  Run %s to see it in action.\n",
-			focusedStyle.Render(fmt.Sprintf("clawdepl status %s", m.result.Name))))
+		b.WriteString("  Next: run ")
+		b.WriteString(focusedStyle.Render("clawdepl list"))
+		b.WriteString(" to find the instance name/ID, then use ")
+		b.WriteString(focusedStyle.Render("clawdepl status <name-or-id>"))
+		b.WriteString(".\n")
 	}
 
 	b.WriteString("\n")
@@ -333,13 +409,36 @@ func (m NewInstanceModel) renderCompletedStep(label, value string) string {
 		fmt.Sprintf("%s: %s", promptStyle.Render(label), value))
 }
 
-// Result returns the result of the wizard
+func (m NewInstanceModel) renderAuthChoice() string {
+	var b strings.Builder
+	for i, choice := range m.authChoices {
+		prefix := "  "
+		label := humanAuthChoice(choice)
+		if i == m.authIndex {
+			prefix = focusedStyle.Render("➤ ")
+			label = focusedStyle.Render(label)
+		}
+		b.WriteString(fmt.Sprintf("%s%s\n", prefix, label))
+	}
+	return b.String()
+}
+
+func humanAuthChoice(choice string) string {
+	switch choice {
+	case "anthropic-setup-token":
+		return "Setup-token"
+	default:
+		return "API key"
+	}
+}
+
+// Result returns the result of the wizard.
 func (m NewInstanceModel) Result() NewInstanceResult {
 	return m.result
 }
 
-// RunNewInstanceWizard runs the new instance wizard and returns the result
-func RunNewInstanceWizard(name string, onProvision func(name, token, purpose string) error) (*NewInstanceResult, error) {
+// RunNewInstanceWizard runs the new instance wizard and returns the result.
+func RunNewInstanceWizard(name string, onProvision func(name, token, authChoice, purpose string) error) (*NewInstanceResult, error) {
 	opts := []NewInstanceOption{
 		WithProvisionCallback(onProvision),
 	}
@@ -356,5 +455,8 @@ func RunNewInstanceWizard(name string, onProvision func(name, token, purpose str
 	}
 
 	result := finalModel.(NewInstanceModel).Result()
+	if result.AuthChoice == "" {
+		result.AuthChoice = "anthropic-api-key"
+	}
 	return &result, nil
 }

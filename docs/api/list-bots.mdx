@@ -1,0 +1,57 @@
+---
+title: POST /list-bots
+description: List all bots for the authenticated user.
+---
+
+## Request
+
+```bash
+POST /list-bots
+Authorization: Bearer <TOKEN>
+Content-Type: application/json
+```
+
+No request body required (send `{}`).
+
+## Response
+
+<ResponseField name="bots" type="array">
+  Array of bot objects.
+  <Expandable>
+    <ResponseField name="id" type="string">Bot database ID.</ResponseField>
+    <ResponseField name="name" type="string">Bot name.</ResponseField>
+    <ResponseField name="sandbox_id" type="string">Sandbox identifier.</ResponseField>
+    <ResponseField name="state" type="string">Current state (`"started"`, `"stopped"`, `"provisioning"`, `"failed"`, `"deleted"`).</ResponseField>
+    <ResponseField name="created_at" type="string">ISO 8601 creation timestamp.</ResponseField>
+  </Expandable>
+</ResponseField>
+
+```json
+{
+  "bots": [
+    {
+      "id": "bot_001",
+      "name": "my-agent",
+      "sandbox_id": "sandbox_abc123",
+      "state": "started",
+      "created_at": "2026-02-08T12:00:00Z"
+    },
+    {
+      "id": "bot_002",
+      "name": "test-bot",
+      "sandbox_id": "sandbox_def456",
+      "state": "stopped",
+      "created_at": "2026-02-05T08:30:00Z"
+    }
+  ]
+}
+```
+
+## Example
+
+```bash
+curl -X POST https://ghcvpnixedcjpokvbsep.supabase.co/functions/v1/list-bots \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{}'
+```

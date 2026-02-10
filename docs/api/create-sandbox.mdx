@@ -1,0 +1,99 @@
+---
+title: POST /create-sandbox
+description: Provision a new bot sandbox.
+---
+
+## Request
+
+```bash
+POST /create-sandbox
+Authorization: Bearer <TOKEN>
+Content-Type: application/json
+```
+
+### Body
+
+<ParamField body="molty_name" type="string" required>
+  Bot name (max 50 characters). This is used as the sandbox label and the auth profile name.
+</ParamField>
+
+<ParamField body="anthropic_credential_type" type="string" required>
+  `"api_key"` or `"token"`.
+</ParamField>
+
+<ParamField body="anthropic_credential" type="string" required>
+  Anthropic API key or Claude setup-token OAuth token.
+</ParamField>
+
+<ParamField body="molty_prompt" type="string">
+  Prompt string passed as the `MOLTY_PROMPT` environment variable to the container.
+</ParamField>
+
+## Response
+
+<Tabs>
+  <Tab title="200 — Created">
+    <ResponseField name="success" type="boolean">`true`</ResponseField>
+    <ResponseField name="bot_name" type="string">The bot name.</ResponseField>
+    <ResponseField name="sandbox" type="object">
+      <Expandable>
+        <ResponseField name="id" type="string">Sandbox ID (use this for all subsequent operations).</ResponseField>
+        <ResponseField name="state" type="string">Initial state.</ResponseField>
+      </Expandable>
+    </ResponseField>
+
+    ```json
+    {
+      "success": true,
+      "bot_name": "my-agent",
+      "sandbox": {
+        "id": "sandbox_abc123",
+        "state": "provisioning"
+      },
+      "gateway_auth_token": "mv_deadbeef..."
+    }
+    ```
+  </Tab>
+  <Tab title="403 — Limit reached">
+    <ResponseField name="error" type="string">Error message.</ResponseField>
+    <ResponseField name="tier" type="string">Current plan tier (`"free"` or `"pro"`).</ResponseField>
+    <ResponseField name="limit" type="integer">Maximum bots for this tier.</ResponseField>
+    <ResponseField name="active" type="integer">Currently active bots.</ResponseField>
+
+    ```json
+    {
+      "error": "Bot limit reached. Your free plan allows 2 concurrent bots. Upgrade to Pro for up to 10 bots.",
+      "tier": "free",
+      "limit": 2,
+      "active": 2
+    }
+    ```
+  </Tab>
+  <Tab title="409 — Duplicate name">
+    ```json
+    {
+      "error": "A bot named \"my-agent\" already exists. Please choose a different name."
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Container details
+
+Each sandbox runs the `diogoiwasaki/openclaw-base` Docker image with:
+- Exposed ports: `18789`, `18790`
+- Environment variables: `MOLTY_NAME`, `OPENCLAW_CONFIG`, `MOLTY_PROMPT`, `ANTHROPIC_API_KEY`/`ANTHROPIC_SETUP_TOKEN`
+
+## Example
+
+```bash
+curl -X POST https://ghcvpnixedcjpokvbsep.supabase.co/functions/v1/create-sandbox \
+  -H "Authorization: Bearer YOUR_TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "molty_name": "my-agent",
+    "anthropic_credential_type": "token",
+    "anthropic_credential": "sk-ant-oat01-...",
+    "molty_prompt": "You are a helpful assistant."
+  }'
+```

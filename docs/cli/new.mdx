@@ -1,0 +1,80 @@
+---
+title: clawdepl new
+description: Create a new Molty (AI agent) instance.
+---
+
+Create a new Molty instance with an interactive wizard or in non-interactive mode for CI/CD.
+
+```bash
+clawdepl new [name] [flags]
+```
+
+## Arguments
+
+<ParamField path="name" type="string">
+  Instance name (max 50 characters). If omitted, the wizard prompts for it.
+</ParamField>
+
+## Flags
+
+<ParamField path="--claude-token" type="string">
+  Claude credential (API key or setup token). Required for non-interactive mode.
+</ParamField>
+
+<ParamField path="--purpose" type="string">
+  Instance purpose or description. Required for non-interactive mode.
+</ParamField>
+
+<ParamField path="--auth-choice" type="string" default="api-key">
+  Anthropic auth mode. Options: `api-key`, `setup-token`.
+</ParamField>
+
+<ParamField path="--model" type="string" default="anthropic/claude-opus-4-6">
+  Primary model in `provider/model` format.
+</ParamField>
+
+## Interactive mode
+
+When flags are omitted, the wizard prompts for each value:
+
+```bash
+clawdepl new
+```
+
+1. Enter instance name
+2. Enter Claude API key (validated against Anthropic API)
+3. Enter purpose / description
+4. Sandbox provisions (~30s) with a progress spinner
+
+## Non-interactive mode
+
+Provide all flags for CI/CD:
+
+```bash
+clawdepl new my-agent \
+  --claude-token "$ANTHROPIC_API_KEY" \
+  --purpose "CI test instance" \
+  --model anthropic/claude-sonnet-4-5
+```
+
+## What happens
+
+1. Builds an `openclaw_config` JSON from your credential, auth choice, and model
+2. Calls `POST /create-sandbox` with `molty_name`, Anthropic credentials, and the prompt
+3. Polls `check-sandbox-status` every 2 seconds until ready
+4. Prints the sandbox ID and status
+
+## Errors
+
+| Code | Cause |
+|------|-------|
+| 403 | Bot limit reached for your tier (free: 2, pro: 10) |
+| 409 | A bot with that name already exists |
+
+## Supported providers
+
+The `--model` flag accepts any provider from the OpenClaw native provider list:
+
+<Accordion title="Full provider list">
+`anthropic`, `openai`, `openai-codex`, `opencode`, `google`, `google-vertex`, `google-antigravity`, `google-gemini-cli`, `zai`, `vercel-ai-gateway`, `openrouter`, `amazon-bedrock`, `xai`, `groq`, `cerebras`, `mistral`, `github-copilot`, `moonshot`, `kimi-coding`, `qwen-portal`, `qianfan`, `synthetic`, `minimax`, `ollama`
+</Accordion>

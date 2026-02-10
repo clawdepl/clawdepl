@@ -192,16 +192,18 @@ func showAuthLoginInfo() error {
 }
 
 func runAuthLogout(cmd *cobra.Command, args []string) error {
-	// Check if logged in first
-	if !config.IsLoggedIn() {
+	creds, err := config.LoadCredentials()
+	if err != nil {
+		return fmt.Errorf("failed to load credentials: %w", err)
+	}
+
+	if creds == nil {
 		fmt.Println("Not currently logged in.")
 		return nil
 	}
 
-	// Get user info before logging out
-	creds, _ := config.LoadCredentials()
 	userName := "user"
-	if creds != nil && creds.User != nil {
+	if creds.User != nil {
 		userName = creds.User.Email
 	}
 

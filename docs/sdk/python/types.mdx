@@ -1,0 +1,117 @@
+---
+title: Types
+description: Python SDK — data types reference.
+---
+
+All types are frozen dataclasses (immutable) defined in `clawdepl_sdk.types`.
+
+## TokenInfo
+
+Returned by `client.verify_token()`.
+
+```python
+@dataclass(frozen=True)
+class TokenInfo:
+    valid: bool
+    user_id: str
+    email: str
+    name: str
+```
+
+## SandboxInfo
+
+Nested inside `CreateBotResult`.
+
+```python
+@dataclass(frozen=True)
+class SandboxInfo:
+    id: str
+    state: str
+```
+
+## CreateBotResult
+
+Returned by `client.create_bot()`.
+
+```python
+@dataclass(frozen=True)
+class CreateBotResult:
+    success: bool
+    bot_name: str
+    sandbox: SandboxInfo
+```
+
+## BotInfo
+
+Returned by `client.list_bots()`.
+
+```python
+@dataclass(frozen=True)
+class BotInfo:
+    id: str
+    name: str
+    sandbox_id: str
+    state: str
+    created_at: str
+```
+
+## SandboxStatus
+
+Returned by `bot.status()` and `bot.wait_until_ready()`.
+
+```python
+@dataclass(frozen=True)
+class SandboxStatus:
+    state: str
+    ready: bool
+```
+
+## ExecResult
+
+Returned by `session.exec()`.
+
+```python
+@dataclass(frozen=True)
+class ExecResult:
+    output: str
+    exit_code: int
+```
+
+## StreamEvent
+
+Yielded by `session.stream_exec()`.
+
+```python
+@dataclass(frozen=True)
+class StreamEvent:
+    type: str                    # "started", "output", "done", "error"
+    content: Optional[str]       # Present for "output" and "error"
+    cmd_id: Optional[str]        # Present for "started"
+    exit_code: Optional[int]     # Present for "done"
+```
+
+## SSHAccess
+
+Returned by `bot.create_ssh()`.
+
+```python
+@dataclass(frozen=True)
+class SSHAccess:
+    ssh_token: str
+    ssh_command: str             # e.g. "ssh token@ssh.app.daytona.io"
+    expires_in_minutes: int
+    sandbox_id: str
+```
+
+## SubscriptionInfo
+
+Returned by `client.check_subscription()`.
+
+```python
+@dataclass(frozen=True)
+class SubscriptionInfo:
+    subscribed: bool
+    product_id: Optional[str]
+    subscription_end: Optional[str]
+    active_bot_count: int
+```

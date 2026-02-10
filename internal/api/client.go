@@ -7,7 +7,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"net"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/clawdepl/clawdepl/internal/buildinfo"
@@ -95,8 +97,9 @@ func GetUserIDOverride() string {
 // DefaultConfig returns the default API client configuration
 func DefaultConfig() *ClientConfig {
 	return &ClientConfig{
-		APIURL:  GetEffectiveAPIEndpoint(),
-		Timeout: 30 * time.Second,
+		APIURL: GetEffectiveAPIEndpoint(),
+		// Prefer request-scoped context timeouts over a global http.Client.Timeout.
+		Timeout: 0,
 	}
 }
 
@@ -109,7 +112,8 @@ func NewClient(cfg *ClientConfig) (*Client, error) {
 	client := &Client{
 		apiURL: cfg.APIURL,
 		httpClient: &http.Client{
-			Timeout: cfg.Timeout,
+			Timeout:   cfg.Timeout,
+			Transport: defaultHTTPTransport(),
 		},
 	}
 
@@ -134,6 +138,21 @@ func NewClient(cfg *ClientConfig) (*Client, error) {
 	}
 
 	return client, nil
+}
+
+func defaultHTTPTransport() *http.Transport {
+	return &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout:   10 * time.Second,
+			KeepAlive: 30 * time.Second,
+		}).DialContext,
+		ForceAttemptHTTP2:     true,
+		MaxIdleConns:          100,
+		IdleConnTimeout:       90 * time.Second,
+		TLSHandshakeTimeout:   10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
 }
 
 // doRequest performs an HTTP request with auth headers
@@ -183,22 +202,42 @@ func parseResponse[T any](resp *http.Response) (*T, error) {
 
 // ========== Data Types ==========
 
-// CreateSandboxRequest represents a request to create a new sandbox
+// CreateSandboxRequest represents a request to create a new sandbox.
+//
+// This matches the production create-sandbox schema consumed by the GUI.
 type CreateSandboxRequest struct {
-	Name           string `json:"name"`
-	OpenclawConfig string `json:"openclaw_config"`
-	MoltyPrompt    string `json:"molty_prompt"`
+	MoltyName               string `json:"molty_name"`                // required
+	AnthropicCredentialType string `json:"anthropic_credential_type"` // required: "api_key" or "token"
+	AnthropicCredential     string `json:"anthropic_credential"`      // required
+	MoltyPrompt             string `json:"molty_prompt"`              // required (IDENTITY.md content)
 }
 
-// CreateSandboxResponse represents the response from creating a sandbox
+// CreateSandboxResponse represents the response from creating a sandbox.
+//
+// New schema returns {sandbox_id, gateway_auth_token}. We also keep legacy fields
+// so older deployments can still be parsed without crashing the CLI.
 type CreateSandboxResponse struct {
-	Success bool   `json:"success"`
+	SandboxID        string `json:"sandbox_id,omitempty"`
+	GatewayAuthToken string `json:"gateway_auth_token,omitempty"`
+
+	// Legacy fields (older response shape).
+	Success bool   `json:"success,omitempty"`
 	BotName string `json:"bot_name,omitempty"`
 	Sandbox struct {
 		ID    string `json:"id"`
 		State string `json:"state"`
 	} `json:"sandbox,omitempty"`
 	Error string `json:"error,omitempty"`
+}
+
+func (r *CreateSandboxResponse) EffectiveSandboxID() string {
+	if r == nil {
+		return ""
+	}
+	if strings.TrimSpace(r.SandboxID) != "" {
+		return strings.TrimSpace(r.SandboxID)
+	}
+	return strings.TrimSpace(r.Sandbox.ID)
 }
 
 // SandboxExecRequest represents a request to the sandbox-exec endpoint
@@ -208,6 +247,28 @@ type SandboxExecRequest struct {
 	SessionID string `json:"session_id,omitempty"`
 	Command   string `json:"command,omitempty"`
 	Timeout   int    `json:"timeout,omitempty"`
+}
+
+// CreateSessionResponse represents the response from creating a sandbox terminal session.
+type CreateSessionResponse struct {
+	Success   bool   `json:"success"`
+	SessionID string `json:"session_id,omitempty"`
+	Message   string `json:"message,omitempty"`
+	Error     string `json:"error,omitempty"`
+}
+
+// ExecResponse represents synchronous command execution output from sandbox-exec.
+type ExecResponse struct {
+	Output   string `json:"output,omitempty"`
+	ExitCode int    `json:"exit_code"`
+	Error    string `json:"error,omitempty"`
+}
+
+// DeleteSessionResponse represents the response from deleting a sandbox terminal session.
+type DeleteSessionResponse struct {
+	Success bool   `json:"success"`
+	Message string `json:"message,omitempty"`
+	Error   string `json:"error,omitempty"`
 }
 
 // SandboxStatusResponse represents the status check response
@@ -279,14 +340,8 @@ func (c *Client) ListBots(ctx context.Context) ([]Bot, error) {
 }
 
 // CreateSandbox creates a new sandbox via POST /create-sandbox
-func (c *Client) CreateSandbox(ctx context.Context, name, openclawConfig, moltyPrompt string) (*CreateSandboxResponse, error) {
+func (c *Client) CreateSandbox(ctx context.Context, req *CreateSandboxRequest) (*CreateSandboxResponse, error) {
 	url := fmt.Sprintf("%s/create-sandbox", c.apiURL)
-
-	req := &CreateSandboxRequest{
-		Name:           name,
-		OpenclawConfig: openclawConfig,
-		MoltyPrompt:    moltyPrompt,
-	}
 
 	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
 	if err != nil {
@@ -362,6 +417,62 @@ func (c *Client) DeleteSandbox(ctx context.Context, sandboxID string) (*ActionRe
 	}
 
 	return parseResponse[ActionResponse](resp)
+}
+
+// CreateSession creates a terminal session for exec commands via POST /sandbox-exec.
+func (c *Client) CreateSession(ctx context.Context, sandboxID, sessionID string) (*CreateSessionResponse, error) {
+	url := fmt.Sprintf("%s/sandbox-exec", c.apiURL)
+
+	req := &SandboxExecRequest{
+		SandboxID: sandboxID,
+		Action:    "create-session",
+		SessionID: sessionID,
+	}
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[CreateSessionResponse](resp)
+}
+
+// ExecCommand executes a command synchronously in a session via POST /sandbox-exec.
+func (c *Client) ExecCommand(ctx context.Context, sandboxID, sessionID, command string, timeoutSeconds int) (*ExecResponse, error) {
+	url := fmt.Sprintf("%s/sandbox-exec", c.apiURL)
+
+	req := &SandboxExecRequest{
+		SandboxID: sandboxID,
+		Action:    "exec",
+		SessionID: sessionID,
+		Command:   command,
+		Timeout:   timeoutSeconds,
+	}
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[ExecResponse](resp)
+}
+
+// DeleteSession deletes a previously created terminal session via POST /sandbox-exec.
+func (c *Client) DeleteSession(ctx context.Context, sandboxID, sessionID string) (*DeleteSessionResponse, error) {
+	url := fmt.Sprintf("%s/sandbox-exec", c.apiURL)
+
+	req := &SandboxExecRequest{
+		SandboxID: sandboxID,
+		Action:    "delete-session",
+		SessionID: sessionID,
+	}
+
+	resp, err := c.doRequest(ctx, http.MethodPost, url, req)
+	if err != nil {
+		return nil, err
+	}
+
+	return parseResponse[DeleteSessionResponse](resp)
 }
 
 // WaitForReady polls CheckSandboxStatus every 2s until the sandbox is ready

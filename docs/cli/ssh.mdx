@@ -1,0 +1,43 @@
+---
+title: clawdepl ssh
+description: SSH into a running Molty instance.
+---
+
+Open an interactive SSH session to a running instance. Temporary SSH credentials are provisioned automatically and revoked when you exit.
+
+```bash
+clawdepl ssh <name>
+```
+
+## Arguments
+
+<ParamField path="name" type="string" required>
+  Instance name or sandbox ID. If a name is provided, it's resolved to a sandbox ID via `list-bots`.
+</ParamField>
+
+## Requirements
+
+- OpenSSH client must be installed
+- The instance must be in the `running` state
+
+## Behavior
+
+1. Resolves the instance name to a sandbox ID
+2. Verifies the instance is running
+3. Provisions temporary SSH credentials (60-minute expiry)
+4. Opens an interactive SSH session via `ssh token@ssh.app.daytona.io`
+5. Revokes credentials automatically when the session ends or on `Ctrl+C`
+
+## Examples
+
+```bash
+# SSH by instance name
+clawdepl ssh my-agent
+
+# SSH by sandbox ID
+clawdepl ssh sandbox_abc123
+```
+
+<Tip>
+Press `Ctrl+C` or type `exit` to leave the SSH session. Credentials are automatically cleaned up.
+</Tip>

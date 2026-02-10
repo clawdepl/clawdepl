@@ -1,0 +1,73 @@
+---
+title: SDK Overview
+description: Programmatic access to clawdepl from Python and TypeScript.
+---
+
+The clawdepl SDKs are pure HTTP clients that give you full programmatic control over your Molty instances. No Go binary or CLI dependency required.
+
+<CardGroup cols={2}>
+  <Card title="Python SDK" icon="python" href="/sdk/python/quickstart">
+    `pip install clawdepl-sdk`
+
+    Sync + async clients, httpx-based, Python 3.9+
+  </Card>
+  <Card title="TypeScript SDK" icon="js" href="/sdk/typescript/quickstart">
+    `npm install @clawdepl/sdk`
+
+    Async-first, zero runtime deps, Node 18+
+  </Card>
+</CardGroup>
+
+## Architecture
+
+Both SDKs share the same class hierarchy:
+
+```
+ClawdeplClient
+  ├── verifyToken()
+  ├── listBots()
+  ├── createBot()
+  ├── checkSubscription()
+  └── bot(sandboxId)
+        ├── status()
+        ├── start() / stop() / delete()
+        ├── createSSH() / revokeSSH()
+        ├── waitUntilReady()
+        └── createSession(sessionId)
+              ├── exec(command)
+              ├── streamExec(command)
+              └── delete()
+```
+
+## Feature comparison
+
+| Feature | Python | TypeScript |
+|---------|--------|------------|
+| Sync API | `ClawdeplClient` | -- |
+| Async API | `AsyncClawdeplClient` | `ClawdeplClient` (all async) |
+| HTTP library | httpx | Native fetch |
+| Streaming | `Iterator` / `AsyncIterator` | `AsyncGenerator` |
+| Context manager | `with` / `async with` | `Symbol.asyncDispose` |
+| Runtime deps | httpx | None |
+| Min version | Python 3.9 | Node 18 |
+
+## Credential interop
+
+All SDKs read the same `~/.clawdepl/credentials.json` file written by `clawdepl login`. Token resolution order:
+
+1. Explicit constructor argument
+2. `CLAWDEPL_TOKEN` environment variable
+3. `~/.clawdepl/credentials.json`
+
+## Error handling
+
+Both SDKs map HTTP status codes to typed error classes:
+
+| HTTP Status | Error Class | Meaning |
+|-------------|-------------|---------|
+| 401 | `AuthError` | Invalid or missing token |
+| 403 | `LimitReachedError` | Bot limit reached (has `.tier`, `.limit`, `.active`) |
+| 404 | `NotFoundError` | Resource not found |
+| 409 | `ConflictError` | Duplicate resource (e.g. bot name) |
+| 500 | `ServerError` | Internal server error |
+| 502 | `UpstreamError` | Daytona provisioning failure |

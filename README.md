@@ -18,10 +18,10 @@ The fastest way to use clawdepl is with `npx` or `pipx`—no installation requir
 
 ```bash
 # Using npx (Node.js)
-npx clawdepl init my-project
+npx clawdepl --help
 
 # Using pipx (Python)
-pipx run clawdepl init my-project
+pipx run clawdepl --help
 ```
 
 ## Installation
@@ -67,17 +67,20 @@ make build
 ## Usage
 
 ```bash
-# Create a new OpenClaw project
-clawdepl init my-agent-project
+# Authenticate
+clawdepl login
 
-# Navigate to your project
-cd my-agent-project
+# Create a new instance
+clawdepl new my-agent
 
-# Deploy to hosted infrastructure
-clawdepl deploy
+# Create with explicit Anthropic auth mode + model
+clawdepl new my-agent --claude-token "$ANTHROPIC_API_KEY" --auth-choice api-key --model anthropic/claude-opus-4-6 --purpose "Production agent"
 
-# Check the status of your instance
-clawdepl status
+# List instances
+clawdepl list
+
+# Check a specific instance
+clawdepl status sandbox_abc123
 ```
 
 ## Commands
@@ -89,12 +92,18 @@ clawdepl status
 | `new [name]` | Create a new OpenClaw instance |
 | `list` | List all deployed instances |
 | `status <name>` | Check the status of an instance |
+| `chat <name> <message>` | Send a message to a running instance |
 | `start <name>` | Start an instance |
 | `stop <name>` | Stop an instance |
 | `delete <name>` | Delete an instance |
 | `version` | Print version and build information |
 
 Run `clawdepl --help` for a complete list of commands and options.
+
+`clawdepl new` supports:
+- `--claude-token` (credential for Anthropic auth)
+- `--auth-choice` (`api-key` or `setup-token`)
+- `--model` (`provider/model`, validated against OpenClaw native providers)
 
 ### Version Command
 
@@ -202,6 +211,9 @@ make test-npx
 
 # Test pipx execution
 make test-pipx
+
+# Run live E2E integration tests (requires secrets)
+make test-e2e
 ```
 
 ### Local Development
@@ -269,7 +281,18 @@ make test-npx
 
 # Test pipx execution
 make test-pipx
+
+# Run live E2E integration tests
+make test-e2e
 ```
+
+### E2E Integration Secrets
+
+Live E2E integration tests require these environment variables/secrets:
+
+- `CLAWDEPL_E2E_TOKEN`
+- `CLAWDEPL_E2E_ANTHROPIC_KEY`
+- `CLAWDEPL_E2E_INVALID_ANTHROPIC_KEY`
 
 ### Debug Builds
 

@@ -1,0 +1,29 @@
+---
+title: clawdepl login
+description: Shortcut alias for `clawdepl auth login`.
+---
+
+`clawdepl login` is an alias for [`clawdepl auth login`](/cli/auth#auth-login). All flags are identical.
+
+```bash
+clawdepl login [flags]
+```
+
+### Flags
+
+| Flag | Description |
+|------|-------------|
+| `--api-key` | Use API key authentication |
+| `--info` | Show current login status |
+| `--no-browser` | Print URL instead of opening browser |
+| `--token <token>` | Authenticate with pre-obtained token |
+
+### Examples
+
+```bash
+clawdepl login
+clawdepl login --token $CLAWDEPL_TOKEN
+clawdepl login --api-key
+```
+
+See [`clawdepl auth login`](/cli/auth#auth-login) for full details.

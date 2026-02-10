@@ -9,7 +9,6 @@ import (
 	"time"
 
 	"github.com/clawdepl/clawdepl/internal/api"
-	"github.com/clawdepl/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -18,16 +17,16 @@ var (
 )
 
 var deleteCmd = &cobra.Command{
-	Use:   "delete <sandbox-id> [sandbox-id2...]",
+	Use:   "delete <sandbox-id|name> [sandbox-id|name2...]",
 	Short: "Delete one or more Molty instances",
-	Long: `Delete one or more Molty instances by sandbox ID.
+	Long: `Delete one or more Molty instances by sandbox ID or instance name.
 
 By default, prompts for confirmation before deleting. Use -y to skip.
 
 Examples:
   clawdepl delete sandbox_abc123           # Delete with confirmation
-  clawdepl delete sandbox_abc123 -y        # Delete without confirmation
-  clawdepl delete sandbox_1 sandbox_2      # Delete multiple instances`,
+  clawdepl delete wifey -y                 # Delete by name without confirmation
+  clawdepl delete sandbox_1 wifey          # Delete multiple instances`,
 	Args: cobra.MinimumNArgs(1),
 	RunE: runDelete,
 }
@@ -38,10 +37,8 @@ func init() {
 }
 
 func runDelete(cmd *cobra.Command, args []string) error {
-	// Check if logged in (or using unsafe token in debug builds)
-	if !HasUnsafeToken() && !config.IsLoggedIn() {
-		fmt.Println("Not logged in. Run 'clawdepl login' first.")
-		return nil
+	if err := requireLogin(); err != nil {
+		return err
 	}
 
 	client, err := api.NewClient(nil)
@@ -52,20 +49,27 @@ func runDelete(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
 
-	// Verify instances exist first by checking status
+	// Resolve and verify instances exist.
 	var toDelete []string
-	for _, sandboxID := range args {
-		_, err := client.CheckSandboxStatus(ctx, sandboxID)
+	var skipped int
+	for _, nameOrID := range args {
+		sandboxID, err := resolveSandboxID(ctx, client, nameOrID)
 		if err != nil {
-			fmt.Printf("Warning: sandbox '%s' not found or inaccessible, skipping\n", sandboxID)
+			fmt.Printf("Warning: %v, skipping\n", err)
+			skipped++
+			continue
+		}
+		_, err = client.CheckSandboxStatus(ctx, sandboxID)
+		if err != nil {
+			fmt.Printf("Warning: instance '%s' not found or inaccessible, skipping\n", nameOrID)
+			skipped++
 			continue
 		}
 		toDelete = append(toDelete, sandboxID)
 	}
 
 	if len(toDelete) == 0 {
-		fmt.Println("No valid instances to delete.")
-		return nil
+		return fmt.Errorf("no valid instances to delete")
 	}
 
 	// Confirm deletion

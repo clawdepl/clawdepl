@@ -7,11 +7,11 @@ import (
 	"os/exec"
 	"os/signal"
 	"strings"
+	"sync"
 	"syscall"
 	"time"
 
 	"github.com/clawdepl/clawdepl/internal/api"
-	"github.com/clawdepl/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -37,10 +37,8 @@ func init() {
 }
 
 func runSSH(cmd *cobra.Command, args []string) error {
-	// Check if logged in (or using unsafe token in debug builds)
-	if !HasUnsafeToken() && !config.IsLoggedIn() {
-		fmt.Println("Not logged in. Run 'clawdepl login' first.")
-		return nil
+	if err := requireLogin(); err != nil {
+		return err
 	}
 
 	nameOrID := args[0]
@@ -53,29 +51,9 @@ func runSSH(cmd *cobra.Command, args []string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
 
-	// Resolve name to sandbox ID if needed
-	sandboxID := nameOrID
-	if !strings.HasPrefix(nameOrID, "sandbox_") {
-		// Look up bot by name
-		bots, err := client.ListBots(ctx)
-		if err != nil {
-			return fmt.Errorf("failed to list instances: %w", err)
-		}
-
-		found := false
-		for _, bot := range bots {
-			if bot.Name == nameOrID {
-				sandboxID = bot.SandboxID
-				found = true
-				break
-			}
-		}
-
-		if !found {
-			fmt.Printf("✗ Instance '%s' not found\n", nameOrID)
-			fmt.Println("\nRun 'clawdepl list' to see available instances")
-			return nil
-		}
+	sandboxID, err := resolveSandboxID(ctx, client, nameOrID)
+	if err != nil {
+		return err
 	}
 
 	// Check sandbox status - must be running
@@ -85,20 +63,13 @@ func runSSH(cmd *cobra.Command, args []string) error {
 	}
 
 	if !isRunningState(status.State) {
-		fmt.Printf("✗ Cannot SSH to '%s': sandbox is %s (must be running)\n", nameOrID, status.State)
-		fmt.Printf("\nStart it first with: clawdepl start %s\n", nameOrID)
-		return nil
+		return fmt.Errorf("cannot SSH to '%s': sandbox is %s (start it first with: clawdepl start %s)", nameOrID, status.State, nameOrID)
 	}
 
 	// Check if SSH client is available
 	sshPath, err := exec.LookPath("ssh")
 	if err != nil {
-		fmt.Println("✗ SSH client not found")
-		fmt.Println("\nPlease install OpenSSH client:")
-		fmt.Println("  Ubuntu/Debian: sudo apt install openssh-client")
-		fmt.Println("  macOS: SSH is pre-installed")
-		fmt.Println("  Windows: Install OpenSSH via Settings → Apps → Optional Features")
-		return nil
+		return fmt.Errorf("SSH client not found (install OpenSSH client and retry)")
 	}
 
 	// Provision SSH access
@@ -111,24 +82,21 @@ func runSSH(cmd *cobra.Command, args []string) error {
 	fmt.Printf("✓ SSH access provisioned (expires in %d minutes)\n", sshResp.ExpiresInMinutes)
 
 	// Setup cleanup handling
-	var revoked bool
+	var revokeOnce sync.Once
 	revokeSSH := func() {
-		if revoked {
-			return
-		}
-		revoked = true
+		revokeOnce.Do(func() {
+			fmt.Println("\nRevoking SSH access...")
+			ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+			defer cancel()
 
-		fmt.Println("\nRevoking SSH access...")
-		ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
-		defer cancel()
-
-		_, err := client.RevokeSSH(ctx, sandboxID, sshResp.SSHToken)
-		if err != nil {
-			fmt.Printf("⚠ Warning: failed to revoke SSH token: %v\n", err)
-			fmt.Println("  (Token will auto-expire in 60 minutes)")
-		} else {
-			fmt.Println("✓ SSH access revoked")
-		}
+			_, err := client.RevokeSSH(ctx, sandboxID, sshResp.SSHToken)
+			if err != nil {
+				fmt.Printf("⚠ Warning: failed to revoke SSH token: %v\n", err)
+				fmt.Println("  (Token will auto-expire in 60 minutes)")
+			} else {
+				fmt.Println("✓ SSH access revoked")
+			}
+		})
 	}
 
 	// Ensure cleanup always happens
@@ -140,7 +108,7 @@ func runSSH(cmd *cobra.Command, args []string) error {
 	go func() {
 		<-sigChan
 		revokeSSH()
-		os.Exit(0)
+		os.Exit(130)
 	}()
 
 	// Parse SSH command to extract user and host
@@ -177,8 +145,9 @@ func runSSH(cmd *cobra.Command, args []string) error {
 }
 
 func isRunningState(state string) bool {
-	switch state {
-	case "running", "ready", "active":
+	s := strings.ToLower(strings.TrimSpace(state))
+	switch s {
+	case "running", "ready", "active", "started":
 		return true
 	default:
 		return false

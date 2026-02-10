@@ -1,0 +1,105 @@
+---
+title: clawdepl auth
+description: Authentication commands for managing your clawdepl session.
+---
+
+The `auth` command group manages authentication with clawdepl.dev.
+
+## Subcommands
+
+| Subcommand | Description |
+|------------|-------------|
+| `auth login` | Authenticate with clawdepl.dev |
+| `auth logout` | Sign out and clear stored credentials |
+| `auth status` | Show current account information |
+
+---
+
+## auth login
+
+Authenticate with clawdepl.dev to manage instances.
+
+```bash
+clawdepl auth login [flags]
+```
+
+### Flags
+
+<ParamField path="--api-key" type="boolean">
+  Use API key authentication. Prompts for the key interactively.
+</ParamField>
+
+<ParamField path="--info" type="boolean">
+  Show current login status without performing login.
+</ParamField>
+
+<ParamField path="--no-browser" type="boolean">
+  Print the login URL instead of opening a browser. Copy the token from the web page and paste it into the CLI.
+</ParamField>
+
+<ParamField path="--token" type="string">
+  Authenticate with a pre-obtained token. Ideal for CI/CD pipelines.
+</ParamField>
+
+### Examples
+
+```bash
+# Default: OAuth via browser
+clawdepl auth login
+
+# CI/CD: authenticate with a token
+clawdepl auth login --token $CLAWDEPL_TOKEN
+
+# Headless: print URL, paste token manually
+clawdepl auth login --no-browser
+
+# API key: interactive prompt
+clawdepl auth login --api-key
+
+# Check if already logged in
+clawdepl auth login --info
+```
+
+---
+
+## auth logout
+
+Sign out and delete `~/.clawdepl/credentials.json`.
+
+```bash
+clawdepl auth logout
+```
+
+---
+
+## auth status
+
+Display the currently authenticated user.
+
+```bash
+clawdepl auth status [flags]
+```
+
+### Flags
+
+<ParamField path="--json" type="boolean">
+  Output as JSON for scripting.
+</ParamField>
+
+### Examples
+
+```bash
+# Human-readable
+clawdepl auth status
+
+# JSON output
+clawdepl auth status --json
+```
+
+### Output
+
+<ResponseField name="id" type="string">User ID</ResponseField>
+<ResponseField name="email" type="string">Email address</ResponseField>
+<ResponseField name="name" type="string">Display name</ResponseField>
+<ResponseField name="auth_type" type="string">Authentication method: `oauth` or `api_key`</ResponseField>
+<ResponseField name="expires_at" type="string">Token expiry (OAuth only)</ResponseField>

@@ -44,22 +44,24 @@ curl -X POST ${BASE_URL}/create-sandbox \
   -H "Authorization: Bearer <TOKEN>" \
   -H "Content-Type: application/json" \
   -d '{
-    "name": "my-agent",
-    "openclaw_config": "{\"key\": \"value\"}",
+    "molty_name": "my-agent",
+    "anthropic_credential_type": "token",
+    "anthropic_credential": "sk-ant-oat01-...",
     "molty_prompt": "You are a helpful assistant..."
   }'
 ```
 
 | Parameter | Type | Required | Description |
 |-----------|------|----------|-------------|
-| `name` | string | No | Bot name (max 50 chars). Defaults to `bot-<timestamp>` |
-| `openclaw_config` | string | No | Passed as `OPENCLAW_CONFIG` env var to the container |
-| `molty_prompt` | string | No | Passed as `MOLTY_PROMPT` env var to the container |
+| `molty_name` | string | Yes | Bot name (max 50 chars). Used as sandbox label + auth profile name. |
+| `anthropic_credential_type` | string | Yes | `"api_key"` or `"token"` |
+| `anthropic_credential` | string | Yes | Anthropic API key or Claude setup-token OAuth token |
+| `molty_prompt` | string | Yes | Full `IDENTITY.md` content |
 
 **Container details:**
 - Image: `diogoiwasaki/openclaw-base`
 - Exposed ports: `18789`, `18790`
-- Environment variables: `OPENCLAW_CONFIG`, `MOLTY_PROMPT`
+- Environment variables: `MOLTY_NAME`, `OPENCLAW_CONFIG`, `MOLTY_PROMPT`, `ANTHROPIC_API_KEY`/`ANTHROPIC_SETUP_TOKEN`
 
 **Response (200):**
 ```json
@@ -70,7 +72,8 @@ curl -X POST ${BASE_URL}/create-sandbox \
     "id": "sandbox-id-from-daytona",
     "state": "...",
     "...": "..."
-  }
+  },
+  "gateway_auth_token": "mv_..."
 }
 ```
 

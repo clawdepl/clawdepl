@@ -1,0 +1,104 @@
+---
+title: Bot
+description: TypeScript SDK — Bot reference.
+---
+
+A `Bot` represents a handle to a single sandbox. Obtain one via `client.bot(sandboxId)`.
+
+```typescript
+const bot = client.bot("sandbox_abc123", "my-agent");
+```
+
+## Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `sandboxId` | `string` | The sandbox identifier |
+| `name` | `string` | The bot name (if provided) |
+
+## Methods
+
+### `status(): Promise<SandboxStatus>`
+
+Get the current state and readiness.
+
+```typescript
+const st = await bot.status();
+console.log(`State: ${st.state}, Ready: ${st.ready}`);
+```
+
+### `start(): Promise<void>`
+
+Start a stopped sandbox.
+
+### `stop(): Promise<void>`
+
+Stop a running sandbox.
+
+### `delete(): Promise<void>`
+
+Permanently delete the sandbox.
+
+<Warning>
+This is irreversible. All data in the sandbox is destroyed.
+</Warning>
+
+### `createSession(sessionId): Promise<Session>`
+
+Create a terminal [Session](/sdk/typescript/session) inside the sandbox.
+
+<ParamField path="sessionId" type="string" required>
+  A unique session identifier (you choose it).
+</ParamField>
+
+```typescript
+const session = await bot.createSession("my-session");
+```
+
+### `createSSH(expiresInMinutes?): Promise<SSHAccess>`
+
+Provision temporary SSH access to the sandbox.
+
+<ParamField path="expiresInMinutes" type="number" default="60">
+  How long the SSH credentials remain valid.
+</ParamField>
+
+```typescript
+const ssh = await bot.createSSH(30);
+console.log(ssh.ssh_command); // "ssh token@ssh.app.daytona.io"
+```
+
+### `revokeSSH(sshToken): Promise<void>`
+
+Revoke previously created SSH credentials.
+
+<ParamField path="sshToken" type="string" required>
+  The `ssh_token` from `createSSH()`.
+</ParamField>
+
+### `waitUntilReady(opts?): Promise<SandboxStatus>`
+
+Poll the sandbox status until it becomes ready.
+
+<ParamField path="opts.pollInterval" type="number" default="2000">
+  Milliseconds between status checks.
+</ParamField>
+
+<ParamField path="opts.timeout" type="number | undefined">
+  Maximum milliseconds to wait. `undefined` means wait indefinitely.
+</ParamField>
+
+<ParamField path="opts.onProgress" type="(state: string, ready: boolean) => void">
+  Called after each poll.
+</ParamField>
+
+```typescript
+await bot.waitUntilReady({
+  timeout: 120_000,
+  onProgress: (state, ready) => console.log(`  ${state}...`),
+});
+```
+
+**Throws:**
+- `ClawdeplError` if the sandbox enters `failed` or `error` state
+- `ClawdeplError` if the timeout is exceeded

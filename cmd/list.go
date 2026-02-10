@@ -8,7 +8,6 @@ import (
 	"time"
 
 	"github.com/clawdepl/clawdepl/internal/api"
-	"github.com/clawdepl/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
@@ -31,10 +30,8 @@ func init() {
 }
 
 func runList(cmd *cobra.Command, args []string) error {
-	// Check if logged in (or using unsafe token in debug builds)
-	if !HasUnsafeToken() && !config.IsLoggedIn() {
-		fmt.Println("Not logged in. Run 'clawdepl login' first.")
-		return nil
+	if err := requireLogin(); err != nil {
+		return err
 	}
 
 	client, err := api.NewClient(nil)

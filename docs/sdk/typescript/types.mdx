@@ -1,0 +1,141 @@
+---
+title: Types
+description: TypeScript SDK — type definitions reference.
+---
+
+All types are exported as TypeScript interfaces from `@clawdepl/sdk`.
+
+## TokenInfo
+
+Returned by `client.verifyToken()`.
+
+```typescript
+interface TokenInfo {
+  valid: boolean;
+  userId: string;
+  email: string;
+  name: string;
+}
+```
+
+## SandboxInfo
+
+Nested inside `CreateBotResult`.
+
+```typescript
+interface SandboxInfo {
+  id: string;
+  state: string;
+}
+```
+
+## CreateBotResult
+
+Returned by `client.createBot()`.
+
+```typescript
+interface CreateBotResult {
+  success: boolean;
+  bot_name: string;
+  sandbox: SandboxInfo;
+}
+```
+
+## BotInfo
+
+Returned by `client.listBots()`.
+
+```typescript
+interface BotInfo {
+  id: string;
+  name: string;
+  sandbox_id: string;
+  state: string;
+  created_at: string;
+}
+```
+
+## SandboxStatus
+
+Returned by `bot.status()` and `bot.waitUntilReady()`.
+
+```typescript
+interface SandboxStatus {
+  state: string;
+  ready: boolean;
+}
+```
+
+## ExecResult
+
+Returned by `session.exec()`.
+
+```typescript
+interface ExecResult {
+  output: string;
+  exit_code: number;
+}
+```
+
+## StreamEvent
+
+Yielded by `session.streamExec()`.
+
+```typescript
+interface StreamEvent {
+  type: string;              // "started", "output", "done", "error"
+  content?: string;          // Present for "output" and "error"
+  cmd_id?: string;           // Present for "started"
+  exit_code?: number;        // Present for "done"
+}
+```
+
+## SSHAccess
+
+Returned by `bot.createSSH()`.
+
+```typescript
+interface SSHAccess {
+  ssh_token: string;
+  ssh_command: string;       // e.g. "ssh token@ssh.app.daytona.io"
+  expires_in_minutes: number;
+  sandbox_id: string;
+}
+```
+
+## SubscriptionInfo
+
+Returned by `client.checkSubscription()`.
+
+```typescript
+interface SubscriptionInfo {
+  subscribed: boolean;
+  product_id: string | null;
+  subscription_end: string | null;
+  active_bot_count: number;
+}
+```
+
+## CreateBotOptions
+
+Accepted by `client.createBot()`.
+
+```typescript
+interface CreateBotOptions {
+  name?: string;
+  openclawConfig?: string;
+  moltyPrompt?: string;
+}
+```
+
+## WaitUntilReadyOptions
+
+Accepted by `bot.waitUntilReady()`.
+
+```typescript
+interface WaitUntilReadyOptions {
+  pollInterval?: number;    // Milliseconds (default: 2000)
+  timeout?: number;         // Milliseconds (default: no timeout)
+  onProgress?: (state: string, ready: boolean) => void;
+}
+```

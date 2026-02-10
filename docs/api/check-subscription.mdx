@@ -1,0 +1,63 @@
+---
+title: POST /check-subscription
+description: Check the current user's subscription status and active bot count.
+---
+
+<Note>
+This endpoint requires a **Supabase JWT** (from OAuth login). API tokens are not supported.
+</Note>
+
+## Request
+
+```bash
+POST /check-subscription
+Authorization: Bearer <JWT>
+Content-Type: application/json
+```
+
+No request body required.
+
+## Response
+
+<Tabs>
+  <Tab title="200 — Subscribed">
+    <ResponseField name="subscribed" type="boolean">`true`</ResponseField>
+    <ResponseField name="product_id" type="string">Stripe product ID.</ResponseField>
+    <ResponseField name="subscription_end" type="string">Subscription expiry (ISO 8601).</ResponseField>
+    <ResponseField name="active_bot_count" type="integer">Currently active bots.</ResponseField>
+
+    ```json
+    {
+      "subscribed": true,
+      "product_id": "prod_TwlLmFbDKg0nGt",
+      "subscription_end": "2026-08-15T00:00:00.000Z",
+      "active_bot_count": 3
+    }
+    ```
+  </Tab>
+  <Tab title="200 — Free tier">
+    ```json
+    {
+      "subscribed": false,
+      "product_id": null,
+      "subscription_end": null,
+      "active_bot_count": 1
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Tier limits
+
+| Tier | Max bots |
+|------|----------|
+| Free | 2 |
+| Pro | 10 |
+
+## Example
+
+```bash
+curl -X POST https://ghcvpnixedcjpokvbsep.supabase.co/functions/v1/check-subscription \
+  -H "Authorization: Bearer YOUR_JWT" \
+  -H "Content-Type: application/json"
+```

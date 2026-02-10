@@ -3,7 +3,6 @@ package cmd
 import (
 	"context"
 	"fmt"
-	"os"
 	"time"
 
 	"github.com/clawdepl/clawdepl/internal/auth"
@@ -131,18 +130,17 @@ func showLoginInfo() error {
 	return nil
 }
 
-// RunLoginFlow runs the login flow and returns true if successful
-// This is exported for use by other commands (e.g., root with no args)
-func RunLoginFlow(noBrowser bool) bool {
+// RunLoginFlow runs the login flow.
+// This is exported for use by other commands (e.g., root with no args).
+func RunLoginFlow(noBrowser bool) error {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Minute)
 	defer cancel()
 
 	creds, err := auth.Login(ctx, noBrowser, false)
 	if err != nil {
-		fmt.Fprintf(os.Stderr, "Login failed: %v\n", err)
-		return false
+		return fmt.Errorf("login failed: %w", err)
 	}
 
 	fmt.Printf("\n✓ Logged in as %s (%s)\n\n", creds.User.Name, creds.User.Email)
-	return true
+	return nil
 }

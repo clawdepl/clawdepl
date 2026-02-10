@@ -191,7 +191,7 @@
 
       <div class="info-section">
         <div class="info-card token-card">
-          <p class="info-label">Your API Token (just in case you need it)</p>
+          <p class="info-label">API Token</p>
           <p class="info-value token-value" id="token-display">••••••••••••••••</p>
         </div>
       </div>
@@ -215,10 +215,11 @@
       userInfo.textContent = email;
     }
 
-    // Display full token for reference
+    // Display masked token only to avoid exposing sensitive secrets in browser history/screenshots.
     const tokenDisplay = document.getElementById('token-display');
     if (token) {
-      tokenDisplay.textContent = token;
+      const suffix = token.slice(-4);
+      tokenDisplay.textContent = `••••••••••••${suffix}`;
     }
   </script>
 </body>

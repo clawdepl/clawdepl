@@ -1,0 +1,106 @@
+---
+title: Errors
+description: Python SDK — error classes reference.
+---
+
+All errors inherit from `ClawdeplError`. Import them from the top-level package:
+
+```python
+from clawdepl_sdk import AuthError, LimitReachedError, ConflictError
+```
+
+## Error hierarchy
+
+```
+ClawdeplError (base)
+  ├── AuthError          (401)
+  ├── LimitReachedError  (403)
+  ├── NotFoundError      (404)
+  ├── ConflictError      (409)
+  ├── ServerError        (500+)
+  ├── UpstreamError      (502)
+  └── TimeoutError
+```
+
+## ClawdeplError
+
+Base class for all SDK errors.
+
+```python
+class ClawdeplError(Exception):
+    status: int   # HTTP status code (0 for non-HTTP errors)
+```
+
+## AuthError
+
+Raised on **401** responses. The token is invalid, expired, or missing.
+
+```python
+try:
+    client.verify_token()
+except AuthError as e:
+    print(f"Auth failed: {e}")
+```
+
+## LimitReachedError
+
+Raised on **403** responses when the bot limit is reached. Includes tier metadata.
+
+```python
+class LimitReachedError(ClawdeplError):
+    tier: Optional[str]     # e.g. "free"
+    limit: Optional[int]    # e.g. 2
+    active: Optional[int]   # e.g. 2
+```
+
+```python
+try:
+    client.create_bot(name="another-bot")
+except LimitReachedError as e:
+    print(f"{e.tier} plan: {e.active}/{e.limit} bots")
+```
+
+## ConflictError
+
+Raised on **409** responses. Typically a duplicate bot name.
+
+```python
+try:
+    client.create_bot(name="existing-name")
+except ConflictError:
+    print("Bot name already taken")
+```
+
+## NotFoundError
+
+Raised on **404** responses. The requested resource doesn't exist.
+
+## ServerError
+
+Raised on **500+** responses (except 502). Internal server errors.
+
+## UpstreamError
+
+Raised on **502** responses. The upstream Daytona sandbox runtime failed.
+
+## TimeoutError
+
+Raised when an operation times out (e.g. `wait_until_ready` with a `timeout` parameter).
+
+<Note>
+This is `clawdepl_sdk.TimeoutError`, not Python's built-in `TimeoutError`. Both inherit from `Exception`, so catching the built-in won't catch the SDK's version.
+</Note>
+
+## Error mapping
+
+The SDK maps HTTP status codes automatically:
+
+| HTTP Status | Error Class |
+|-------------|-------------|
+| 401 | `AuthError` |
+| 403 | `LimitReachedError` |
+| 404 | `NotFoundError` |
+| 409 | `ConflictError` |
+| 500 | `ServerError` |
+| 502 | `UpstreamError` |
+| Other 4xx/5xx | `ClawdeplError` |

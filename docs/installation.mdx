@@ -1,0 +1,71 @@
+---
+title: Installation
+description: Install the clawdepl CLI and SDKs.
+---
+
+## CLI
+
+Install the CLI using any of these methods:
+
+<Tabs>
+  <Tab title="npm">
+    ```bash
+    # Global install
+    npm install -g clawdepl
+
+    # Or use without installing
+    npx clawdepl
+    ```
+  </Tab>
+  <Tab title="pip">
+    ```bash
+    # Global install
+    pip install clawdepl
+
+    # Or use without installing
+    pipx run clawdepl
+    ```
+  </Tab>
+  <Tab title="Go">
+    ```bash
+    go install github.com/clawdepl/clawdepl@latest
+    ```
+  </Tab>
+  <Tab title="From Source">
+    ```bash
+    git clone https://github.com/clawdepl/clawdepl.git
+    cd clawdepl
+    make build
+    ```
+  </Tab>
+</Tabs>
+
+Verify the installation:
+
+```bash
+clawdepl version
+```
+
+## Python SDK
+
+```bash
+pip install clawdepl-sdk
+```
+
+<Info>
+Requires Python 3.9+. The only runtime dependency is [httpx](https://www.python-httpx.org/).
+</Info>
+
+## TypeScript SDK
+
+```bash
+npm install @clawdepl/sdk
+```
+
+<Info>
+Requires Node.js 18+. Zero runtime dependencies -- uses the built-in `fetch` API.
+</Info>
+
+## Verify
+
+After installing the CLI and authenticating (`clawdepl login`), the SDKs automatically pick up your stored credentials. No additional configuration required.

@@ -1,0 +1,103 @@
+---
+title: POST /sandbox-terminal-url
+description: SSH access management for sandboxes.
+---
+
+Manage SSH access to sandboxes via the `action` field.
+
+## Common fields
+
+<ParamField body="sandbox_id" type="string" required>
+  The sandbox identifier.
+</ParamField>
+
+<ParamField body="action" type="string" required>
+  Either `"create-ssh"` or `"revoke-ssh"`.
+</ParamField>
+
+---
+
+## create-ssh
+
+Provision temporary SSH credentials for a sandbox.
+
+### Request
+
+<ParamField body="expires_in_minutes" type="integer" default="60">
+  How long the SSH credentials remain valid.
+</ParamField>
+
+```json
+{
+  "sandbox_id": "sandbox_abc123",
+  "action": "create-ssh",
+  "expires_in_minutes": 60
+}
+```
+
+### Response
+
+<ResponseField name="ssh_token" type="string">The SSH authentication token.</ResponseField>
+<ResponseField name="ssh_command" type="string">Ready-to-use SSH command.</ResponseField>
+<ResponseField name="expires_in_minutes" type="integer">Credential validity period.</ResponseField>
+<ResponseField name="sandbox_id" type="string">The sandbox these credentials are for.</ResponseField>
+
+```json
+{
+  "ssh_token": "token-string",
+  "ssh_command": "ssh token-string@ssh.app.daytona.io",
+  "expires_in_minutes": 60,
+  "sandbox_id": "sandbox_abc123"
+}
+```
+
+---
+
+## revoke-ssh
+
+Revoke previously issued SSH credentials.
+
+### Request
+
+<ParamField body="ssh_token" type="string" required>
+  The `ssh_token` to revoke (from `create-ssh`).
+</ParamField>
+
+```json
+{
+  "sandbox_id": "sandbox_abc123",
+  "action": "revoke-ssh",
+  "ssh_token": "token-string"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "sandbox_id": "sandbox_abc123"
+}
+```
+
+---
+
+## Example
+
+```bash
+BASE="https://ghcvpnixedcjpokvbsep.supabase.co/functions/v1"
+AUTH="Authorization: Bearer YOUR_TOKEN"
+
+# Create SSH access
+curl -X POST $BASE/sandbox-terminal-url \
+  -H "$AUTH" -H "Content-Type: application/json" \
+  -d '{"sandbox_id":"sandbox_abc123","action":"create-ssh","expires_in_minutes":60}'
+
+# Use the SSH command from the response
+ssh token-string@ssh.app.daytona.io
+
+# Revoke when done
+curl -X POST $BASE/sandbox-terminal-url \
+  -H "$AUTH" -H "Content-Type: application/json" \
+  -d '{"sandbox_id":"sandbox_abc123","action":"revoke-ssh","ssh_token":"token-string"}'
+```

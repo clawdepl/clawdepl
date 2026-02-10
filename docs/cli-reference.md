@@ -156,14 +156,22 @@ Create a new Molty (AI agent) instance with an interactive wizard.
 
 If a name is provided, the wizard will skip the name prompt. The wizard guides you through:
 1. Instance name (if not provided)
-2. Claude API token
+2. Claude credential (API key or setup-token)
 3. Purpose/description (vibe)
+
+For CI/non-interactive mode, provide:
+- `--claude-token <token>`
+- `--purpose <text>`
+- Optional: `--auth-choice api-key|setup-token`
+- Optional: `--model provider/model`
 
 **Examples:**
 
 ```bash
 clawdepl new              # Interactive wizard
 clawdepl new my-agent     # Skip name prompt
+clawdepl new my-agent --claude-token "$ANTHROPIC_API_KEY" --purpose "CI instance"
+clawdepl new my-agent --claude-token "$CLAUDE_SETUP_TOKEN" --auth-choice setup-token --model anthropic/claude-sonnet-4-5 --purpose "CI instance"
 ```
 
 #### `clawdepl list`
@@ -249,6 +257,26 @@ clawdepl ssh sandbox_abc123     # SSH by sandbox ID
 - Instance not found → Suggests `clawdepl list`
 - Instance stopped → Suggests `clawdepl start <name>`
 - SSH client missing → Shows installation instructions
+
+---
+
+#### `clawdepl chat <sandbox_name> <message>`
+
+Send a message to a running instance without opening SSH manually.
+
+Creates a temporary session, runs a prompt command in the sandbox, prints output, and closes the session.
+
+| Flag | Description |
+|------|-------------|
+| `--runner <cmd>` | Base command used in sandbox (default: `claude -p`) |
+| `--timeout <sec>` | Execution timeout in seconds (default: `120`) |
+
+**Examples:**
+
+```bash
+clawdepl chat wifey "Hi, introduce yourself"
+clawdepl chat wifey "What can you do?" --runner "claude -p"
+```
 
 ---
 

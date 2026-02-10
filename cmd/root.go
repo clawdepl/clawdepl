@@ -36,6 +36,7 @@ Authentication:
 
 Instance management:
   clawdepl status <name>      Show instance status
+  clawdepl chat <name> <msg>  Send a message to a running instance
   clawdepl start <name>       Start an instance
   clawdepl stop <name>        Stop an instance
   clawdepl ssh <name>         SSH into a running instance
@@ -43,8 +44,10 @@ Instance management:
 
 For more information about a command, run:
   clawdepl <command> --help`,
-	Version: fmt.Sprintf("%s (commit: %s)", buildinfo.Version, buildinfo.Commit),
-	RunE:    runRoot,
+	Version:       fmt.Sprintf("%s (commit: %s)", buildinfo.Version, buildinfo.Commit),
+	RunE:          runRoot,
+	SilenceUsage:  true,
+	SilenceErrors: true,
 }
 
 // Execute runs the root command
@@ -87,8 +90,8 @@ func runRoot(cmd *cobra.Command, args []string) error {
 		fmt.Println("Let's get you set up. First, we need to log you in.")
 		fmt.Println()
 
-		if !RunLoginFlow(false) {
-			return nil // Login failed or cancelled
+		if err := RunLoginFlow(false); err != nil {
+			return err
 		}
 	}
 

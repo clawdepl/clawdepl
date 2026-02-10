@@ -1,0 +1,113 @@
+---
+title: Config Builder
+description: Python SDK — OpenClawConfigBuilder reference.
+---
+
+The `OpenClawConfigBuilder` generates the `openclaw_config` JSON string expected by `create_bot()`. It mirrors the Go CLI's config builder with the same provider whitelist and model validation.
+
+## OpenClawConfigBuilder
+
+Fluent builder pattern -- each setter returns `self` for chaining.
+
+```python
+from clawdepl_sdk import OpenClawConfigBuilder
+
+config = (
+    OpenClawConfigBuilder()
+    .credential("sk-ant-api03-...")
+    .auth_choice("api-key")
+    .model("anthropic/claude-sonnet-4-5")
+    .build()
+)
+```
+
+### Methods
+
+#### `credential(value: str) -> OpenClawConfigBuilder`
+
+Set the Claude credential (API key or setup token). **Required.**
+
+#### `auth_choice(value: str) -> OpenClawConfigBuilder`
+
+Set the Anthropic auth mode.
+
+| Input | Canonical form |
+|-------|---------------|
+| `""`, `"api-key"`, `"anthropic-api-key"` | `"anthropic-api-key"` |
+| `"token"`, `"setup-token"`, `"anthropic-setup-token"` | `"anthropic-setup-token"` |
+
+#### `model(value: str) -> OpenClawConfigBuilder`
+
+Set the primary model in `provider/model` format. Defaults to `anthropic/claude-opus-4-6` if empty.
+
+#### `build() -> str`
+
+Build and return the JSON config string.
+
+**Raises `ValueError` if:**
+- Credential is empty
+- Auth choice is invalid
+- Model format is invalid
+- Provider is not in the native provider list
+
+### Output format
+
+```json
+{
+  "env": {
+    "ANTHROPIC_API_KEY": "sk-ant-..."
+  },
+  "agents": {
+    "defaults": {
+      "model": {
+        "primary": "anthropic/claude-sonnet-4-5"
+      }
+    }
+  },
+  "clawdepl": {
+    "auth": {
+      "provider": "anthropic",
+      "method": "anthropic-api-key"
+    }
+  }
+}
+```
+
+When `auth_choice` is `"anthropic-setup-token"`, the `env` object also includes `"ANTHROPIC_SETUP_TOKEN"`.
+
+---
+
+## Standalone functions
+
+### `validate_model(model: str) -> str`
+
+Validate and normalize a model reference.
+
+```python
+from clawdepl_sdk.config import validate_model
+
+ref = validate_model("anthropic/claude-opus-4-6")  # OK
+ref = validate_model("z.ai/some-model")             # Normalized to "zai/some-model"
+ref = validate_model("invalid")                      # Raises ValueError
+```
+
+### `canonical_anthropic_auth_choice(input_: str) -> str`
+
+Normalize an auth choice string.
+
+```python
+from clawdepl_sdk.config import canonical_anthropic_auth_choice
+
+canonical_anthropic_auth_choice("api-key")      # "anthropic-api-key"
+canonical_anthropic_auth_choice("setup-token")   # "anthropic-setup-token"
+```
+
+---
+
+## Supported providers
+
+<Accordion title="Full provider list (24)">
+`anthropic`, `openai`, `openai-codex`, `opencode`, `google`, `google-vertex`, `google-antigravity`, `google-gemini-cli`, `zai`, `vercel-ai-gateway`, `openrouter`, `amazon-bedrock`, `xai`, `groq`, `cerebras`, `mistral`, `github-copilot`, `moonshot`, `kimi-coding`, `qwen-portal`, `qianfan`, `synthetic`, `minimax`, `ollama`
+</Accordion>
+
+**Provider aliases:** `z.ai` and `z-ai` are normalized to `zai`.

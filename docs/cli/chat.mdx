@@ -1,0 +1,52 @@
+---
+title: clawdepl chat
+description: Send a message to a running Molty instance.
+---
+
+Send a message to an instance and print the response. This runs a command inside the sandbox without needing an SSH session.
+
+```bash
+clawdepl chat <name> <message> [flags]
+```
+
+## Arguments
+
+<ParamField path="name" type="string" required>
+  Instance name or sandbox ID.
+</ParamField>
+
+<ParamField path="message" type="string" required>
+  The message to send.
+</ParamField>
+
+## Flags
+
+<ParamField path="--runner" type="string" default="claude -p">
+  The base command executed in the sandbox. The message is appended as an argument.
+</ParamField>
+
+<ParamField path="--timeout" type="integer" default="120">
+  Execution timeout in seconds.
+</ParamField>
+
+## Behavior
+
+1. Resolves instance name to sandbox ID
+2. Verifies the instance is running
+3. Creates a temporary terminal session
+4. Executes `<runner> '<message>'` in the sandbox
+5. Prints the output
+6. Deletes the session
+
+## Examples
+
+```bash
+# Basic chat
+clawdepl chat my-agent "What can you do?"
+
+# Custom runner
+clawdepl chat my-agent "Hello" --runner "claude -p"
+
+# With timeout
+clawdepl chat my-agent "Run diagnostics" --timeout 60
+```

@@ -1,0 +1,37 @@
+---
+title: clawdepl completion
+description: Generate shell autocompletion scripts.
+---
+
+Generate completion scripts for your shell.
+
+```bash
+clawdepl completion <shell>
+```
+
+## Shells
+
+<Tabs>
+  <Tab title="Bash">
+    ```bash
+    clawdepl completion bash > /etc/bash_completion.d/clawdepl
+    ```
+  </Tab>
+  <Tab title="Zsh">
+    ```bash
+    clawdepl completion zsh > "${fpath[1]}/_clawdepl"
+    ```
+  </Tab>
+  <Tab title="Fish">
+    ```bash
+    clawdepl completion fish > ~/.config/fish/completions/clawdepl.fish
+    ```
+  </Tab>
+  <Tab title="PowerShell">
+    ```powershell
+    clawdepl completion powershell > clawdepl.ps1
+    ```
+  </Tab>
+</Tabs>
+
+Restart your shell or source the completion file after installation.

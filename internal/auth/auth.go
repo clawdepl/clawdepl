@@ -24,6 +24,8 @@ import (
 	"github.com/clawdepl/clawdepl/internal/config"
 )
 
+var validateHTTPClient = &http.Client{Timeout: 30 * time.Second}
+
 //go:embed callback_success.html
 var callbackSuccessHTML string
 
@@ -82,8 +84,7 @@ func ValidateToken(ctx context.Context, token string) (*config.Credentials, erro
 	req.Header.Set("Authorization", "Bearer "+token)
 	req.Header.Set("Content-Type", "application/json")
 
-	client := &http.Client{Timeout: 30 * time.Second}
-	resp, err := client.Do(req)
+	resp, err := validateHTTPClient.Do(req)
 	if err != nil {
 		return nil, fmt.Errorf("failed to validate token: %w", err)
 	}
@@ -149,19 +150,7 @@ func LoginWithToken(ctx context.Context, token string) (*config.Credentials, err
 	// Validate token and get user info
 	creds, err := ValidateToken(ctx, token)
 	if err != nil {
-		// If validation fails, still allow storing the token
-		// (the backend might not have the verify endpoint yet)
-		fmt.Printf("Warning: Could not validate token: %v\n", err)
-		fmt.Printf("Storing token anyway. It will be validated on first API call.\n")
-
-		creds = &config.Credentials{
-			AccessToken: token,
-			User: &config.User{
-				ID:    "unknown",
-				Email: "unknown",
-				Name:  "Unknown User",
-			},
-		}
+		return nil, fmt.Errorf("token validation failed: %w", err)
 	}
 
 	// Save credentials
@@ -227,25 +216,29 @@ func LoginWithBrowser(ctx context.Context) (*config.Credentials, error) {
 			return
 		}
 
-		userId := query.Get("userId")
-		email := query.Get("email")
-		name := query.Get("name")
-
-		// Use email as fallback for name if not provided
-		if name == "" {
-			name = email
-		}
-		if name == "" {
-			name = "User"
+		creds, err := ValidateToken(r.Context(), token)
+		if err != nil {
+			errChan <- fmt.Errorf("token validation failed: %w", err)
+			http.Error(w, "Token validation failed", http.StatusUnauthorized)
+			return
 		}
 
-		creds := &config.Credentials{
-			AccessToken: token,
-			User: &config.User{
-				ID:    userId,
+		if creds.User == nil {
+			// Fallback to callback query params if user payload is unexpectedly absent.
+			userID := query.Get("userId")
+			email := query.Get("email")
+			name := query.Get("name")
+			if name == "" {
+				name = email
+			}
+			if name == "" {
+				name = "User"
+			}
+			creds.User = &config.User{
+				ID:    userID,
 				Email: email,
 				Name:  name,
-			},
+			}
 		}
 
 		// Serve styled success page (HTML reads query params via JS)
@@ -332,18 +325,38 @@ func LoginWithAPIKey(ctx context.Context) (*config.Credentials, error) {
 		return nil, fmt.Errorf("no API key provided")
 	}
 
-	// Mock: In reality, we'd validate the API key with the server
-	// and fetch user info
+	return loginWithAPIKeyValue(ctx, apiKey)
+}
+
+func loginWithAPIKeyValue(ctx context.Context, apiKey string) (*config.Credentials, error) {
+	// API keys are bearer credentials in the same auth system.
+	validated, err := ValidateToken(ctx, apiKey)
+	if err != nil {
+		return nil, fmt.Errorf("API key validation failed: %w", err)
+	}
+
 	creds := &config.Credentials{
 		APIKey: apiKey,
-		User: &config.User{
-			ID:    "user_api_" + apiKey[:8],
-			Email: "api-user@example.com",
+		User:   validated.User,
+	}
+
+	if creds.User == nil {
+		creds.User = &config.User{
+			ID:    deriveAPIKeyUserID(apiKey),
+			Email: "unknown",
 			Name:  "API User",
-		},
+		}
 	}
 
 	return creds, nil
+}
+
+func deriveAPIKeyUserID(apiKey string) string {
+	prefixLen := 8
+	if len(apiKey) < prefixLen {
+		prefixLen = len(apiKey)
+	}
+	return "user_api_" + apiKey[:prefixLen]
 }
 
 // Login performs the login flow based on options

@@ -1,0 +1,54 @@
+---
+title: CLI Overview
+description: Complete reference for the clawdepl command-line interface.
+---
+
+## Usage
+
+```bash
+clawdepl [command] [flags]
+```
+
+When called without arguments, clawdepl runs an **interactive setup wizard** that handles login and instance creation in one flow.
+
+## Global flags
+
+| Flag | Description |
+|------|-------------|
+| `-h, --help` | Show help for any command |
+| `-v, --version` | Print version number |
+
+## Commands
+
+### Authentication
+
+| Command | Alias | Description |
+|---------|-------|-------------|
+| [`auth login`](/cli/auth) | [`login`](/cli/login) | Authenticate with clawdepl.dev |
+| [`auth logout`](/cli/auth) | [`logout`](/cli/logout) | Sign out and clear credentials |
+| [`auth status`](/cli/auth) | [`account`](/cli/account) | Show current account info |
+
+### Instance management
+
+| Command | Alias | Description |
+|---------|-------|-------------|
+| [`new [name]`](/cli/new) | | Create a new Molty instance |
+| [`list`](/cli/list) | `ls` | List all instances |
+| [`status <id>`](/cli/status) | | Show instance status |
+| [`start <id>`](/cli/start) | | Start a stopped instance |
+| [`stop <id>`](/cli/stop) | | Stop a running instance |
+| [`delete <id>`](/cli/delete) | | Delete instance(s) |
+
+### Interaction
+
+| Command | Description |
+|---------|-------------|
+| [`ssh <name>`](/cli/ssh) | SSH into a running instance |
+| [`chat <name> <msg>`](/cli/chat) | Send a message to an instance |
+
+### Utilities
+
+| Command | Description |
+|---------|-------------|
+| [`version`](/cli/version) | Print version and build info |
+| [`completion <shell>`](/cli/completion) | Generate shell completions |

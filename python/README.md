@@ -7,7 +7,7 @@ This is the PyPI distribution of clawdepl. For full documentation, see the [main
 ## Quick Start (No Install)
 
 ```bash
-pipx run clawdepl init my-project
+pipx run clawdepl --help
 ```
 
 ## Installation
@@ -25,14 +25,14 @@ pipx install clawdepl
 ## Usage
 
 ```bash
-# Create a new OpenClaw project
-clawdepl init my-project
+# Authenticate
+clawdepl login
 
-# Deploy to hosted infrastructure
-clawdepl deploy
+# Create a new instance
+clawdepl new my-agent
 
-# Check instance status
-clawdepl status
+# List instances
+clawdepl list
 
 # Get help
 clawdepl --help

@@ -1,0 +1,87 @@
+---
+title: Session
+description: TypeScript SDK — Session reference.
+---
+
+A `Session` is a terminal session inside a sandbox. Obtain one via `bot.createSession(sessionId)`.
+
+```typescript
+const session = await bot.createSession("my-session");
+```
+
+## Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `sandboxId` | `string` | Parent sandbox identifier |
+| `sessionId` | `string` | This session's identifier |
+
+## Methods
+
+### `exec(command): Promise<ExecResult>`
+
+Execute a command synchronously and return the output.
+
+<ParamField path="command" type="string" required>
+  Shell command to execute.
+</ParamField>
+
+```typescript
+const result = await session.exec("echo hello && whoami");
+console.log(result.output);    // "hello\ndaytona\n"
+console.log(result.exit_code); // 0
+```
+
+### `streamExec(command, timeout?): AsyncGenerator<StreamEvent>`
+
+Execute a command with real-time SSE streaming output.
+
+<ParamField path="command" type="string" required>
+  Shell command to execute.
+</ParamField>
+
+<ParamField path="timeout" type="number | undefined">
+  Execution timeout in seconds.
+</ParamField>
+
+```typescript
+for await (const event of session.streamExec("apt update", 120)) {
+  switch (event.type) {
+    case "started":
+      console.log(`Command started (id: ${event.cmd_id})`);
+      break;
+    case "output":
+      process.stdout.write(event.content ?? "");
+      break;
+    case "done":
+      console.log(`\nExit code: ${event.exit_code}`);
+      break;
+    case "error":
+      console.error(`Error: ${event.content}`);
+      break;
+  }
+}
+```
+
+**StreamEvent fields:**
+
+| Field | Type | Present when |
+|-------|------|-------------|
+| `type` | `string` | Always (`"started"`, `"output"`, `"done"`, `"error"`) |
+| `content` | `string \| undefined` | `"output"` and `"error"` events |
+| `cmd_id` | `string \| undefined` | `"started"` events |
+| `exit_code` | `number \| undefined` | `"done"` events |
+
+### `delete(): Promise<void>`
+
+Delete this session.
+
+### `[Symbol.asyncDispose](): Promise<void>`
+
+Calls `delete()`. Enables use with `await using`:
+
+```typescript
+await using session = await bot.createSession("s1");
+const out = await session.exec("pwd");
+// Session automatically deleted when scope exits
+```

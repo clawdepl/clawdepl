@@ -1,0 +1,46 @@
+---
+title: clawdepl delete
+description: Delete one or more Molty instances.
+---
+
+Permanently delete instances. This stops the sandbox and removes all associated data.
+
+```bash
+clawdepl delete <sandbox-id> [sandbox-id...] [flags]
+```
+
+## Arguments
+
+<ParamField path="sandbox-id" type="string" required>
+  One or more sandbox IDs to delete.
+</ParamField>
+
+## Flags
+
+<ParamField path="-y, --yes" type="boolean">
+  Skip the confirmation prompt.
+</ParamField>
+
+## Examples
+
+```bash
+# Delete with confirmation prompt
+clawdepl delete sandbox_abc123
+
+# Skip confirmation
+clawdepl delete sandbox_abc123 -y
+
+# Delete multiple instances
+clawdepl delete sandbox_abc123 sandbox_def456 -y
+```
+
+## Behavior
+
+1. Checks each sandbox exists by calling `check-sandbox-status`
+2. Prompts for confirmation (unless `-y`)
+3. Deletes each sandbox sequentially
+4. Reports success or failure for each
+
+<Warning>
+This action is irreversible. The sandbox and all data inside it are permanently destroyed.
+</Warning>

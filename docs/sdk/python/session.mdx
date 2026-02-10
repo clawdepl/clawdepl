@@ -1,0 +1,96 @@
+---
+title: Session
+description: Python SDK — Session and AsyncSession reference.
+---
+
+A `Session` is a terminal session inside a sandbox. Obtain one via `bot.create_session(session_id)`. Sessions support context managers for automatic cleanup.
+
+## Session
+
+```python
+with bot.create_session("my-session") as session:
+    result = session.exec("pwd")
+    print(result.output)
+# Session is automatically deleted when the `with` block exits
+```
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `sandbox_id` | `str` | Parent sandbox identifier |
+| `session_id` | `str` | This session's identifier |
+
+### Methods
+
+#### `exec(command) -> ExecResult`
+
+Execute a command synchronously and return the output.
+
+<ParamField path="command" type="str" required>
+  Shell command to execute.
+</ParamField>
+
+```python
+result = session.exec("echo hello && whoami")
+print(result.output)      # "hello\ndaytona\n"
+print(result.exit_code)   # 0
+```
+
+#### `stream_exec(command, timeout) -> Iterator[StreamEvent]`
+
+Execute a command with real-time SSE streaming output.
+
+<ParamField path="command" type="str" required>
+  Shell command to execute.
+</ParamField>
+
+<ParamField path="timeout" type="int | None" default="None">
+  Execution timeout in seconds.
+</ParamField>
+
+```python
+for event in session.stream_exec("apt update", timeout=120):
+    match event.type:
+        case "started":
+            print(f"Command started (id: {event.cmd_id})")
+        case "output":
+            print(event.content, end="")
+        case "done":
+            print(f"\nExit code: {event.exit_code}")
+        case "error":
+            print(f"Error: {event.content}")
+```
+
+**StreamEvent fields:**
+
+| Field | Type | Present when |
+|-------|------|-------------|
+| `type` | `str` | Always (`"started"`, `"output"`, `"done"`, `"error"`) |
+| `content` | `str \| None` | `"output"` and `"error"` events |
+| `cmd_id` | `str \| None` | `"started"` events |
+| `exit_code` | `int \| None` | `"done"` events |
+
+#### `delete() -> None`
+
+Delete this session. Called automatically when used as a context manager.
+
+---
+
+## AsyncSession
+
+Identical API but all methods are `async`. Returned by `AsyncBot.create_session()`.
+
+```python
+async with await bot.create_session("s1") as session:
+    result = await session.exec("pwd")
+    print(result.output)
+
+    async for event in await session.stream_exec("ls -la"):
+        if event.type == "output":
+            print(event.content, end="")
+```
+
+<Note>
+`stream_exec` returns an `AsyncIterator[StreamEvent]`. Use `async for` to consume it.
+</Note>

@@ -1,0 +1,35 @@
+---
+title: clawdepl status
+description: Show the status of a Molty instance.
+---
+
+Check the current state and readiness of a sandbox.
+
+```bash
+clawdepl status <sandbox-id>
+```
+
+## Arguments
+
+<ParamField path="sandbox-id" type="string" required>
+  The sandbox ID to check (from `clawdepl list`).
+</ParamField>
+
+## Output
+
+```bash
+$ clawdepl status sandbox_abc123
+Sandbox:  sandbox_abc123
+State:    ● Running
+Ready:    true
+```
+
+### Possible states
+
+| State | Description |
+|-------|-------------|
+| `started` | Running and ready |
+| `stopped` | Stopped, can be restarted |
+| `provisioning` | Being created |
+| `failed` | Provisioning failed |
+| `error` | Runtime error |

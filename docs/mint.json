@@ -1,0 +1,151 @@
+{
+  "$schema": "https://mintlify.com/schema.json",
+  "name": "clawdepl",
+  "logo": {
+    "dark": "/logo/dark.svg",
+    "light": "/logo/light.svg"
+  },
+  "favicon": "/favicon.svg",
+  "colors": {
+    "primary": "#6D28D9",
+    "light": "#A78BFA",
+    "dark": "#4C1D95",
+    "anchors": {
+      "from": "#6D28D9",
+      "to": "#4C1D95"
+    }
+  },
+  "topbarLinks": [
+    {
+      "name": "Dashboard",
+      "url": "https://clawdepl.dev"
+    }
+  ],
+  "topbarCtaButton": {
+    "name": "Get Started",
+    "url": "https://clawdepl.dev/auth/cli"
+  },
+  "tabs": [
+    {
+      "name": "CLI Reference",
+      "url": "cli"
+    },
+    {
+      "name": "SDK Reference",
+      "url": "sdk"
+    },
+    {
+      "name": "API Reference",
+      "url": "api"
+    }
+  ],
+  "anchors": [
+    {
+      "name": "GitHub",
+      "icon": "github",
+      "url": "https://github.com/clawdepl/clawdepl"
+    },
+    {
+      "name": "Community",
+      "icon": "discord",
+      "url": "https://discord.gg/clawdepl"
+    }
+  ],
+  "navigation": [
+    {
+      "group": "Get Started",
+      "pages": [
+        "introduction",
+        "quickstart",
+        "installation",
+        "authentication"
+      ]
+    },
+    {
+      "group": "CLI Reference",
+      "pages": [
+        "cli/overview",
+        {
+          "group": "Authentication",
+          "pages": [
+            "cli/auth",
+            "cli/login",
+            "cli/logout",
+            "cli/account"
+          ]
+        },
+        {
+          "group": "Instance Management",
+          "pages": [
+            "cli/new",
+            "cli/list",
+            "cli/status",
+            "cli/start",
+            "cli/stop",
+            "cli/delete"
+          ]
+        },
+        {
+          "group": "Interaction",
+          "pages": [
+            "cli/ssh",
+            "cli/chat"
+          ]
+        },
+        {
+          "group": "Utilities",
+          "pages": [
+            "cli/version",
+            "cli/completion"
+          ]
+        }
+      ]
+    },
+    {
+      "group": "SDK Reference",
+      "pages": [
+        "sdk/overview"
+      ]
+    },
+    {
+      "group": "Python SDK",
+      "pages": [
+        "sdk/python/quickstart",
+        "sdk/python/client",
+        "sdk/python/bot",
+        "sdk/python/session",
+        "sdk/python/config",
+        "sdk/python/types",
+        "sdk/python/errors"
+      ]
+    },
+    {
+      "group": "TypeScript SDK",
+      "pages": [
+        "sdk/typescript/quickstart",
+        "sdk/typescript/client",
+        "sdk/typescript/bot",
+        "sdk/typescript/session",
+        "sdk/typescript/config",
+        "sdk/typescript/types",
+        "sdk/typescript/errors"
+      ]
+    },
+    {
+      "group": "API Reference",
+      "pages": [
+        "api/overview",
+        "api/verify-token",
+        "api/create-sandbox",
+        "api/list-bots",
+        "api/sandbox-exec",
+        "api/sandbox-terminal-url",
+        "api/check-subscription"
+      ]
+    }
+  ],
+  "footerSocials": {
+    "github": "https://github.com/clawdepl/clawdepl",
+    "x": "https://x.com/clawdepl"
+  }
+}

@@ -1,0 +1,286 @@
+---
+title: POST /sandbox-exec
+description: Multi-action endpoint for sandbox lifecycle and command execution.
+---
+
+This endpoint handles multiple actions via the `action` field. All actions require `sandbox_id`.
+
+## Common fields
+
+<ParamField body="sandbox_id" type="string" required>
+  The sandbox identifier.
+</ParamField>
+
+<ParamField body="action" type="string" required>
+  The action to perform.
+</ParamField>
+
+---
+
+## check-sandbox-status
+
+Get the current state and readiness of a sandbox.
+
+### Request
+
+```json
+{
+  "sandbox_id": "sandbox_abc123",
+  "action": "check-sandbox-status"
+}
+```
+
+### Response
+
+<ResponseField name="state" type="string">Current state (`"started"`, `"stopped"`, `"provisioning"`, `"failed"`, `"error"`).</ResponseField>
+<ResponseField name="ready" type="boolean">`true` when the sandbox is fully operational.</ResponseField>
+
+```json
+{
+  "state": "started",
+  "ready": true
+}
+```
+
+---
+
+## start-sandbox
+
+Start a stopped sandbox.
+
+### Request
+
+```json
+{
+  "sandbox_id": "sandbox_abc123",
+  "action": "start-sandbox"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true
+}
+```
+
+---
+
+## stop-sandbox
+
+Stop a running sandbox. State is preserved.
+
+### Request
+
+```json
+{
+  "sandbox_id": "sandbox_abc123",
+  "action": "stop-sandbox"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true
+}
+```
+
+---
+
+## delete-sandbox
+
+Permanently stop and delete a sandbox. Marks the bot as `"deleted"` in the database.
+
+### Request
+
+```json
+{
+  "sandbox_id": "sandbox_abc123",
+  "action": "delete-sandbox"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true
+}
+```
+
+---
+
+## create-session
+
+Create a terminal session inside a sandbox for command execution.
+
+### Request
+
+<ParamField body="session_id" type="string" required>
+  A unique session identifier (you choose it).
+</ParamField>
+
+```json
+{
+  "sandbox_id": "sandbox_abc123",
+  "action": "create-session",
+  "session_id": "my-session"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true,
+  "session_id": "my-session"
+}
+```
+
+---
+
+## exec
+
+Run a command synchronously inside a session.
+
+### Request
+
+<ParamField body="session_id" type="string" required>
+  The session to run the command in.
+</ParamField>
+
+<ParamField body="command" type="string" required>
+  Shell command to execute.
+</ParamField>
+
+```json
+{
+  "sandbox_id": "sandbox_abc123",
+  "action": "exec",
+  "session_id": "my-session",
+  "command": "pwd"
+}
+```
+
+### Response
+
+<ResponseField name="output" type="string">Command stdout/stderr output.</ResponseField>
+<ResponseField name="exit_code" type="integer">Process exit code.</ResponseField>
+
+```json
+{
+  "output": "/home/daytona\n",
+  "exit_code": 0
+}
+```
+
+---
+
+## stream-exec
+
+Run a command asynchronously with SSE (Server-Sent Events) streaming output.
+
+### Request
+
+<ParamField body="session_id" type="string" required>
+  The session to run the command in.
+</ParamField>
+
+<ParamField body="command" type="string" required>
+  Shell command to execute.
+</ParamField>
+
+<ParamField body="timeout" type="integer" default="120">
+  Execution timeout in seconds.
+</ParamField>
+
+```json
+{
+  "sandbox_id": "sandbox_abc123",
+  "action": "stream-exec",
+  "session_id": "my-session",
+  "command": "apt update",
+  "timeout": 120
+}
+```
+
+### Response
+
+The response is an SSE stream. Each event is a `data:` line containing JSON:
+
+```
+data: {"type":"started","cmd_id":"cmd-xyz"}
+
+data: {"type":"output","content":"Hit:1 http://deb.debian.org/debian bookworm InRelease\n"}
+
+data: {"type":"output","content":"Reading package lists..."}
+
+data: {"type":"done","exit_code":0}
+```
+
+### Event types
+
+| Type | Fields | Description |
+|------|--------|-------------|
+| `started` | `cmd_id` | Command execution has begun |
+| `output` | `content` | A chunk of stdout/stderr output |
+| `done` | `exit_code` | Command completed |
+| `error` | `content` | Command failed (e.g. timeout) |
+
+---
+
+## delete-session
+
+Delete a terminal session.
+
+### Request
+
+```json
+{
+  "sandbox_id": "sandbox_abc123",
+  "action": "delete-session",
+  "session_id": "my-session"
+}
+```
+
+### Response
+
+```json
+{
+  "success": true
+}
+```
+
+---
+
+## Example
+
+Full lifecycle in curl:
+
+```bash
+BASE="https://ghcvpnixedcjpokvbsep.supabase.co/functions/v1"
+AUTH="Authorization: Bearer YOUR_TOKEN"
+
+# Create session
+curl -X POST $BASE/sandbox-exec \
+  -H "$AUTH" -H "Content-Type: application/json" \
+  -d '{"sandbox_id":"sandbox_abc123","action":"create-session","session_id":"s1"}'
+
+# Execute command
+curl -X POST $BASE/sandbox-exec \
+  -H "$AUTH" -H "Content-Type: application/json" \
+  -d '{"sandbox_id":"sandbox_abc123","action":"exec","session_id":"s1","command":"whoami"}'
+
+# Stream command
+curl -N -X POST $BASE/sandbox-exec \
+  -H "$AUTH" -H "Content-Type: application/json" \
+  -d '{"sandbox_id":"sandbox_abc123","action":"stream-exec","session_id":"s1","command":"apt update"}'
+
+# Delete session
+curl -X POST $BASE/sandbox-exec \
+  -H "$AUTH" -H "Content-Type: application/json" \
+  -d '{"sandbox_id":"sandbox_abc123","action":"delete-session","session_id":"s1"}'
+```

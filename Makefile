@@ -1,4 +1,4 @@
-.PHONY: all build build-debug clean test test-npm test-python test-go install-deps lint release
+.PHONY: all build build-debug clean test test-npm test-python test-go test-e2e install-deps lint release
 
 # Version from environment or default
 VERSION ?= dev
@@ -105,6 +105,12 @@ test-pipx: build
 	@rm -f python/clawdepl/$(BINARY_NAME)
 	@echo "pipx test passed!"
 
+# End-to-end integration test against live backend/services
+test-e2e: build
+	@echo "Running end-to-end integration tests..."
+	@./scripts/test-e2e.sh
+	@echo "E2E integration tests passed!"
+
 # Run all tests
 test: test-go test-npm test-python
 	@echo "All tests passed!"
@@ -156,6 +162,7 @@ help:
 	@echo "  test-python  - Test Python package locally"
 	@echo "  test-npx     - Test npx execution"
 	@echo "  test-pipx    - Test pipx execution"
+	@echo "  test-e2e     - Run live end-to-end integration tests (requires secrets)"
 	@echo "  dev          - Build and copy binary to wrappers for local testing"
 	@echo "  dev-debug    - Build debug binary and copy to wrappers"
 	@echo "  dev-clean    - Remove development binaries from wrappers"

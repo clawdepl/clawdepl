@@ -1,0 +1,122 @@
+---
+title: Bot
+description: Python SDK — Bot and AsyncBot reference.
+---
+
+A `Bot` represents a handle to a single sandbox. Obtain one via `client.bot(sandbox_id)`.
+
+## Bot
+
+```python
+bot = client.bot("sandbox_abc123", name="my-agent")
+```
+
+### Properties
+
+| Property | Type | Description |
+|----------|------|-------------|
+| `sandbox_id` | `str` | The sandbox identifier |
+| `name` | `str` | The bot name (if provided) |
+
+### Methods
+
+#### `status() -> SandboxStatus`
+
+Get the current state and readiness.
+
+```python
+st = bot.status()
+print(f"State: {st.state}, Ready: {st.ready}")
+```
+
+#### `start() -> None`
+
+Start a stopped sandbox.
+
+#### `stop() -> None`
+
+Stop a running sandbox.
+
+#### `delete() -> None`
+
+Permanently delete the sandbox.
+
+<Warning>
+This is irreversible. All data in the sandbox is destroyed.
+</Warning>
+
+#### `create_session(session_id) -> Session`
+
+Create a terminal [Session](/sdk/python/session) inside the sandbox.
+
+<ParamField path="session_id" type="str" required>
+  A unique session identifier (you choose it).
+</ParamField>
+
+```python
+session = bot.create_session("my-session")
+```
+
+#### `create_ssh(expires_in_minutes) -> SSHAccess`
+
+Provision temporary SSH access to the sandbox.
+
+<ParamField path="expires_in_minutes" type="int" default="60">
+  How long the SSH credentials remain valid.
+</ParamField>
+
+```python
+ssh = bot.create_ssh(expires_in_minutes=30)
+print(ssh.ssh_command)  # "ssh token@ssh.app.daytona.io"
+```
+
+#### `revoke_ssh(ssh_token) -> None`
+
+Revoke previously created SSH credentials.
+
+<ParamField path="ssh_token" type="str" required>
+  The `ssh_token` from `create_ssh()`.
+</ParamField>
+
+#### `wait_until_ready(*, poll_interval, timeout, on_progress) -> SandboxStatus`
+
+Poll the sandbox status until it becomes ready.
+
+<ParamField path="poll_interval" type="float" default="2.0">
+  Seconds between status checks.
+</ParamField>
+
+<ParamField path="timeout" type="float | None" default="None">
+  Maximum seconds to wait. `None` means wait indefinitely.
+</ParamField>
+
+<ParamField path="on_progress" type="Callable[[str, bool], None] | None" default="None">
+  Called after each poll with `(state, ready)`.
+</ParamField>
+
+```python
+bot.wait_until_ready(
+    timeout=120,
+    on_progress=lambda state, ready: print(f"  {state}..."),
+)
+```
+
+**Raises:**
+- `ClawdeplError` if the sandbox enters `failed` or `error` state
+- `ClawdeplError` if the timeout is exceeded
+
+---
+
+## AsyncBot
+
+Identical API to `Bot`, but all methods are `async`. Returned by `AsyncClawdeplClient.bot()`.
+
+```python
+async with AsyncClawdeplClient() as client:
+    bot = client.bot("sandbox_abc123")
+    await bot.start()
+    st = await bot.status()
+    session = await bot.create_session("s1")  # Returns AsyncSession
+    await bot.wait_until_ready(timeout=120)
+    await bot.delete()
+```

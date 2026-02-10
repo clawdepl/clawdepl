@@ -1,0 +1,117 @@
+---
+title: Client
+description: Python SDK — ClawdeplClient and AsyncClawdeplClient reference.
+---
+
+## ClawdeplClient
+
+The synchronous client. Use inside a `with` block to ensure the underlying HTTP connection is closed.
+
+```python
+from clawdepl_sdk import ClawdeplClient
+
+with ClawdeplClient(token=None, base_url="...") as client:
+    ...
+```
+
+### Constructor
+
+<ParamField path="token" type="str | None" default="None">
+  Bearer token. If `None`, resolved from `CLAWDEPL_TOKEN` env or `~/.clawdepl/credentials.json`.
+</ParamField>
+
+<ParamField path="base_url" type="str" default="https://ghcvpnixedcjpokvbsep.supabase.co/functions/v1">
+  API base URL.
+</ParamField>
+
+### Methods
+
+#### `verify_token() -> TokenInfo`
+
+Validate the current token and return user info.
+
+```python
+info = client.verify_token()
+print(info.user_id, info.email, info.name)
+```
+
+#### `list_bots() -> list[BotInfo]`
+
+Return all bots for the authenticated user.
+
+```python
+for bot in client.list_bots():
+    print(f"{bot.name}: {bot.state}")
+```
+
+#### `create_bot(name, *, openclaw_config, molty_prompt) -> CreateBotResult`
+
+Create a new bot.
+
+<ParamField path="name" type="str" default='""'>
+  Bot name (max 50 chars). Defaults to `bot-<timestamp>` if empty.
+</ParamField>
+
+<ParamField path="openclaw_config" type="str" default='""'>
+  JSON config string passed as `OPENCLAW_CONFIG` env var to the container.
+</ParamField>
+
+<ParamField path="molty_prompt" type="str" default='""'>
+  Prompt string passed as `MOLTY_PROMPT` env var to the container.
+</ParamField>
+
+```python
+result = client.create_bot(
+    name="my-agent",
+    openclaw_config=config_json,
+    molty_prompt="You are a helpful assistant.",
+)
+print(result.sandbox.id)
+```
+
+#### `bot(sandbox_id, name) -> Bot`
+
+Create a [Bot](/sdk/python/bot) handle for an existing sandbox. Does not make an API call.
+
+```python
+bot = client.bot("sandbox_abc123", name="my-agent")
+```
+
+#### `check_subscription() -> SubscriptionInfo`
+
+Check the current subscription status.
+
+```python
+sub = client.check_subscription()
+print(f"Subscribed: {sub.subscribed}, Active bots: {sub.active_bot_count}")
+```
+
+#### `close() -> None`
+
+Close the underlying HTTP connection. Called automatically when used as a context manager.
+
+---
+
+## AsyncClawdeplClient
+
+The async variant. All methods are identical but return awaitables. Use inside `async with`.
+
+```python
+import asyncio
+from clawdepl_sdk import AsyncClawdeplClient
+
+async def main():
+    async with AsyncClawdeplClient() as client:
+        info = await client.verify_token()
+        bots = await client.list_bots()
+        result = await client.create_bot(name="my-agent")
+        bot = client.bot(result.sandbox.id)  # Returns AsyncBot
+        sub = await client.check_subscription()
+        await client.close()
+
+asyncio.run(main())
+```
+
+<Note>
+`bot()` is synchronous on both clients -- it just creates a handle. The `AsyncClawdeplClient.bot()` method returns an [AsyncBot](/sdk/python/bot#asyncbot) instead of a [Bot](/sdk/python/bot).
+</Note>

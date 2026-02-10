@@ -1,0 +1,23 @@
+---
+title: clawdepl stop
+description: Stop a running Molty instance.
+---
+
+Pause a running instance. The sandbox state is preserved and can be resumed with `clawdepl start`.
+
+```bash
+clawdepl stop <sandbox-id>
+```
+
+## Arguments
+
+<ParamField path="sandbox-id" type="string" required>
+  The sandbox ID to stop.
+</ParamField>
+
+## Example
+
+```bash
+clawdepl stop sandbox_abc123
+# ✓ Instance stopped
+```

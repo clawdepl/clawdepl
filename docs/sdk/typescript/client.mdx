@@ -1,0 +1,88 @@
+---
+title: Client
+description: TypeScript SDK — ClawdeplClient reference.
+---
+
+## ClawdeplClient
+
+The main entry point. All methods are async.
+
+```typescript
+import { ClawdeplClient } from "@clawdepl/sdk";
+
+const client = new ClawdeplClient(token?, baseUrl?);
+```
+
+### Constructor
+
+<ParamField path="token" type="string | undefined">
+  Bearer token. If omitted, resolved from `CLAWDEPL_TOKEN` env or `~/.clawdepl/credentials.json`.
+</ParamField>
+
+<ParamField path="baseUrl" type="string" default="https://ghcvpnixedcjpokvbsep.supabase.co/functions/v1">
+  API base URL.
+</ParamField>
+
+### Methods
+
+#### `verifyToken(): Promise<TokenInfo>`
+
+Validate the current token and return user info.
+
+```typescript
+const info = await client.verifyToken();
+console.log(info.userId, info.email, info.name);
+```
+
+#### `listBots(): Promise<BotInfo[]>`
+
+Return all bots for the authenticated user.
+
+```typescript
+const bots = await client.listBots();
+for (const bot of bots) {
+  console.log(`${bot.name}: ${bot.state}`);
+}
+```
+
+#### `createBot(opts?): Promise<CreateBotResult>`
+
+Create a new bot.
+
+<ParamField path="opts.name" type="string">
+  Bot name (max 50 chars). Defaults to `bot-<timestamp>` if omitted.
+</ParamField>
+
+<ParamField path="opts.openclawConfig" type="string">
+  JSON config string passed as `OPENCLAW_CONFIG` env var.
+</ParamField>
+
+<ParamField path="opts.moltyPrompt" type="string">
+  Prompt string passed as `MOLTY_PROMPT` env var.
+</ParamField>
+
+```typescript
+const result = await client.createBot({
+  name: "my-agent",
+  openclawConfig: configJson,
+  moltyPrompt: "You are a helpful assistant.",
+});
+console.log(result.sandbox.id);
+```
+
+#### `bot(sandboxId, name?): Bot`
+
+Create a [Bot](/sdk/typescript/bot) handle for an existing sandbox. Does not make an API call.
+
+```typescript
+const bot = client.bot("sandbox_abc123", "my-agent");
+```
+
+#### `checkSubscription(): Promise<SubscriptionInfo>`
+
+Check the current subscription status.
+
+```typescript
+const sub = await client.checkSubscription();
+console.log(`Subscribed: ${sub.subscribed}, Bots: ${sub.active_bot_count}`);
+```

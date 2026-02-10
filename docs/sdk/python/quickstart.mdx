@@ -1,0 +1,117 @@
+---
+title: Python Quickstart
+description: Get started with the clawdepl Python SDK.
+---
+
+## Installation
+
+```bash
+pip install clawdepl-sdk
+```
+
+<Info>
+Requires Python 3.9+. The only runtime dependency is [httpx](https://www.python-httpx.org/).
+</Info>
+
+## Prerequisites
+
+Authenticate with the CLI first so the SDK can find your token:
+
+```bash
+clawdepl login
+```
+
+Or set the `CLAWDEPL_TOKEN` environment variable, or pass a token directly to the constructor.
+
+## Sync example
+
+```python
+from clawdepl_sdk import ClawdeplClient
+
+with ClawdeplClient() as client:
+    # Verify your token
+    info = client.verify_token()
+    print(f"Logged in as {info.name} ({info.email})")
+
+    # Create a bot
+    result = client.create_bot(name="my-agent")
+    print(f"Created {result.bot_name} (sandbox: {result.sandbox.id})")
+
+    # Wait for it to be ready
+    bot = client.bot(result.sandbox.id)
+    bot.wait_until_ready(on_progress=lambda state, ready: print(f"  {state}..."))
+
+    # Run a command
+    with bot.create_session("s1") as session:
+        out = session.exec("echo 'Hello from the sandbox!'")
+        print(out.output)
+        print(f"Exit code: {out.exit_code}")
+
+    # Clean up
+    bot.delete()
+```
+
+## Async example
+
+```python
+import asyncio
+from clawdepl_sdk import AsyncClawdeplClient
+
+async def main():
+    async with AsyncClawdeplClient() as client:
+        bots = await client.list_bots()
+        for b in bots:
+            print(f"{b.name} ({b.state})")
+
+asyncio.run(main())
+```
+
+## Streaming output
+
+```python
+from clawdepl_sdk import ClawdeplClient
+
+with ClawdeplClient() as client:
+    bot = client.bot("sandbox_abc123")
+
+    with bot.create_session("s1") as session:
+        for event in session.stream_exec("apt update", timeout=120):
+            if event.type == "output":
+                print(event.content, end="")
+            elif event.type == "done":
+                print(f"\nFinished with exit code {event.exit_code}")
+            elif event.type == "error":
+                print(f"\nError: {event.content}")
+```
+
+## Error handling
+
+```python
+from clawdepl_sdk import ClawdeplClient, AuthError, LimitReachedError
+
+try:
+    client = ClawdeplClient(token="bad-token")
+    client.verify_token()
+except AuthError:
+    print("Invalid token")
+except LimitReachedError as e:
+    print(f"Limit reached: {e.tier} plan allows {e.limit} bots, you have {e.active}")
+```
+
+## Config builder
+
+Build an `openclaw_config` JSON string for `create_bot`:
+
+```python
+from clawdepl_sdk import OpenClawConfigBuilder
+
+config = (
+    OpenClawConfigBuilder()
+    .credential("sk-ant-api03-...")
+    .auth_choice("api-key")
+    .model("anthropic/claude-sonnet-4-5")
+    .build()
+)
+
+client.create_bot(name="my-agent", openclaw_config=config)
+```

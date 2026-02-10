@@ -1,0 +1,65 @@
+---
+title: API Overview
+description: REST API reference for the clawdepl backend.
+---
+
+## Base URL
+
+```
+https://ghcvpnixedcjpokvbsep.supabase.co/functions/v1
+```
+
+## Authentication
+
+All endpoints require a Bearer token in the `Authorization` header:
+
+```
+Authorization: Bearer <TOKEN>
+```
+
+The token can be either:
+- A **clawdepl API token** (from the dashboard or `clawdepl login --api-key`)
+- A **Supabase JWT** (from OAuth login)
+
+## Content type
+
+All requests and responses use JSON:
+
+```
+Content-Type: application/json
+```
+
+## Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | [`/verify-token`](/api/verify-token) | Validate token, get user identity |
+| POST | [`/create-sandbox`](/api/create-sandbox) | Provision a new bot |
+| POST | [`/list-bots`](/api/list-bots) | List all bots |
+| POST | [`/sandbox-exec`](/api/sandbox-exec) | Sandbox lifecycle + command execution |
+| POST | [`/sandbox-terminal-url`](/api/sandbox-terminal-url) | SSH access management |
+| POST | [`/check-subscription`](/api/check-subscription) | Billing status (JWT only) |
+
+## Error format
+
+All error responses follow the same shape:
+
+```json
+{
+  "error": "Human-readable error message"
+}
+```
+
+Some errors include additional metadata (e.g. `tier`, `limit`, `active` on 403).
+
+## Status codes
+
+| Code | Meaning |
+|------|---------|
+| 200 | Success |
+| 400 | Bad request (missing fields, invalid input) |
+| 401 | Authentication failure |
+| 403 | Permission denied / limit reached |
+| 409 | Conflict (duplicate resource) |
+| 500 | Internal server error |
+| 502 | Upstream failure (Daytona) |

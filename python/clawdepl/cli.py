@@ -63,6 +63,19 @@ def get_binary_name() -> str:
     return "clawdepl"
 
 
+def get_local_binary_candidates() -> list[str]:
+    """
+    Return local packaged binary names to probe.
+
+    Includes a legacy typo fallback (`clawdpl`) for backwards compatibility.
+    """
+    binary_name = get_binary_name()
+    candidates = [binary_name]
+    if binary_name == "clawdepl":
+        candidates.append("clawdpl")
+    return candidates
+
+
 def get_cache_dir() -> Path:
     """Get the cache directory for storing the binary."""
     # Use standard cache locations
@@ -108,14 +121,18 @@ def download_binary(dest_path: Path) -> bool:
                 with tarfile.open(fileobj=gz, mode="r:") as tar:
                     for member in tar.getmembers():
                         if member.name == binary_name or member.name.endswith(f"/{binary_name}"):
-                            # Extract to destination
-                            member.name = binary_name
-                            tar.extract(member, dest_path.parent)
-                            extracted = dest_path.parent / binary_name
-                            if extracted != dest_path:
-                                shutil.move(str(extracted), str(dest_path))
-                            # Make executable
-                            dest_path.chmod(dest_path.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
+                            extracted_file = tar.extractfile(member)
+                            if extracted_file is None:
+                                print(f"Archive entry {member.name} is not a regular file", file=sys.stderr)
+                                return False
+
+                            dest_path.parent.mkdir(parents=True, exist_ok=True)
+                            with open(dest_path, "wb") as out:
+                                shutil.copyfileobj(extracted_file, out)
+
+                            # Make executable for user/group/other.
+                            current_mode = dest_path.stat().st_mode
+                            dest_path.chmod(current_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
                             print(f"Installed clawdepl to {dest_path}", file=sys.stderr)
                             return True
 
@@ -144,6 +161,7 @@ def find_binary() -> Optional[str]:
     4. System PATH
     """
     binary_name = get_binary_name()
+    local_candidates = get_local_binary_candidates()
 
     # 1. Check environment variable
     env_path = os.environ.get("CLAWDEPL_BINARY_PATH")
@@ -152,15 +170,17 @@ def find_binary() -> Optional[str]:
 
     # 2. Check in the package directory (for development)
     package_dir = Path(__file__).parent
-    local_binary = package_dir / binary_name
-    if local_binary.exists():
-        return str(local_binary)
+    for candidate in local_candidates:
+        local_binary = package_dir / candidate
+        if local_binary.exists():
+            return str(local_binary)
 
     # Also check project root (for development)
     project_root = package_dir.parent.parent
-    dev_binary = project_root / binary_name
-    if dev_binary.exists():
-        return str(dev_binary)
+    for candidate in local_candidates:
+        dev_binary = project_root / candidate
+        if dev_binary.exists():
+            return str(dev_binary)
 
     # 3. Check cache directory
     cache_binary = get_cache_dir() / binary_name

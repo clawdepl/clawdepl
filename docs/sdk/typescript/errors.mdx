@@ -1,0 +1,113 @@
+---
+title: Errors
+description: TypeScript SDK — error classes reference.
+---
+
+All errors extend `ClawdeplError` which extends the native `Error`. Import them from the top-level package:
+
+```typescript
+import { AuthError, LimitReachedError, ConflictError } from "@clawdepl/sdk";
+```
+
+## Error hierarchy
+
+```
+ClawdeplError (base)
+  ├── AuthError          (401)
+  ├── LimitReachedError  (403)
+  ├── NotFoundError      (404)
+  ├── ConflictError      (409)
+  ├── ServerError        (500+)
+  ├── UpstreamError      (502)
+  └── TimeoutError       (408)
+```
+
+## ClawdeplError
+
+Base class for all SDK errors.
+
+```typescript
+class ClawdeplError extends Error {
+  readonly status: number; // HTTP status code (0 for non-HTTP errors)
+}
+```
+
+## AuthError
+
+Thrown on **401** responses. The token is invalid, expired, or missing.
+
+```typescript
+try {
+  await client.verifyToken();
+} catch (e) {
+  if (e instanceof AuthError) {
+    console.log(`Auth failed: ${e.message}`);
+  }
+}
+```
+
+## LimitReachedError
+
+Thrown on **403** responses when the bot limit is reached. Includes tier metadata.
+
+```typescript
+class LimitReachedError extends ClawdeplError {
+  readonly tier?: string;   // e.g. "free"
+  readonly limit?: number;  // e.g. 2
+  readonly active?: number; // e.g. 2
+}
+```
+
+```typescript
+try {
+  await client.createBot({ name: "another-bot" });
+} catch (e) {
+  if (e instanceof LimitReachedError) {
+    console.log(`${e.tier} plan: ${e.active}/${e.limit} bots`);
+  }
+}
+```
+
+## ConflictError
+
+Thrown on **409** responses. Typically a duplicate bot name.
+
+```typescript
+try {
+  await client.createBot({ name: "existing-name" });
+} catch (e) {
+  if (e instanceof ConflictError) {
+    console.log("Bot name already taken");
+  }
+}
+```
+
+## NotFoundError
+
+Thrown on **404** responses. The requested resource doesn't exist.
+
+## ServerError
+
+Thrown on **500+** responses (except 502). Internal server errors.
+
+## UpstreamError
+
+Thrown on **502** responses. The upstream Daytona sandbox runtime failed.
+
+## TimeoutError
+
+Thrown when an operation times out (e.g. `waitUntilReady` with a `timeout`).
+
+## Error mapping
+
+The SDK maps HTTP status codes automatically:
+
+| HTTP Status | Error Class |
+|-------------|-------------|
+| 401 | `AuthError` |
+| 403 | `LimitReachedError` |
+| 404 | `NotFoundError` |
+| 409 | `ConflictError` |
+| 500 | `ServerError` |
+| 502 | `UpstreamError` |
+| Other 4xx/5xx | `ClawdeplError` |

@@ -1,0 +1,41 @@
+---
+title: clawdepl list
+description: List all Molty instances.
+---
+
+List all instances for the authenticated user.
+
+```bash
+clawdepl list
+```
+
+**Alias:** `clawdepl ls`
+
+## Output
+
+A table with columns:
+
+| Column | Description |
+|--------|-------------|
+| NAME | Instance name |
+| STATE | Status icon and label |
+| SANDBOX ID | Unique sandbox identifier |
+| CREATED | Relative timestamp |
+
+### State icons
+
+| Icon | State |
+|------|-------|
+| `●` | Running |
+| `○` | Stopped |
+| `◐` | Provisioning |
+| `✗` | Error |
+
+## Example
+
+```bash
+$ clawdepl list
+NAME          STATE           SANDBOX ID              CREATED
+my-agent      ● running       sandbox_abc123          2h ago
+test-bot      ○ stopped       sandbox_def456          3d ago
+```

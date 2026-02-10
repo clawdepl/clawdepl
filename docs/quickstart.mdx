@@ -1,0 +1,108 @@
+---
+title: Quickstart
+description: Get from zero to a running AI agent in under 2 minutes.
+---
+
+## One-command setup
+
+The fastest way to get started is the interactive wizard:
+
+```bash
+npx clawdepl
+```
+
+This will:
+1. Open your browser to authenticate
+2. Walk you through creating your first agent
+3. Provision a cloud sandbox and wait until it's ready
+
+## Step-by-step
+
+If you prefer explicit control:
+
+<Steps>
+  <Step title="Install">
+    <CodeGroup>
+    ```bash npm
+    npm install -g clawdepl
+    ```
+    ```bash pip
+    pip install clawdepl
+    ```
+    ```bash go
+    go install github.com/clawdepl/clawdepl@latest
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Authenticate">
+    ```bash
+    clawdepl login
+    ```
+    Your browser opens to `clawdepl.dev`. Sign in, and the CLI stores your credentials at `~/.clawdepl/credentials.json`.
+  </Step>
+
+  <Step title="Create an agent">
+    ```bash
+    clawdepl new my-agent
+    ```
+    The interactive wizard prompts for your Claude API key and a purpose description. The sandbox provisions in ~30 seconds.
+  </Step>
+
+  <Step title="Interact">
+    <CodeGroup>
+    ```bash SSH
+    clawdepl ssh my-agent
+    ```
+    ```bash Chat
+    clawdepl chat my-agent "What can you do?"
+    ```
+    </CodeGroup>
+  </Step>
+
+  <Step title="Manage">
+    ```bash
+    clawdepl list              # See all your agents
+    clawdepl stop sandbox_id   # Pause an agent
+    clawdepl start sandbox_id  # Resume an agent
+    clawdepl delete sandbox_id # Remove permanently
+    ```
+  </Step>
+</Steps>
+
+## Use the SDK instead
+
+If you want programmatic access, install the SDK for your language:
+
+<CodeGroup>
+```python Python
+from clawdepl_sdk import ClawdeplClient
+
+with ClawdeplClient() as client:
+    result = client.create_bot(name="my-agent")
+    bot = client.bot(result.sandbox.id)
+    bot.wait_until_ready()
+
+    with bot.create_session("s1") as session:
+        out = session.exec("echo hello")
+        print(out.output)
+```
+
+```typescript TypeScript
+import { ClawdeplClient } from "@clawdepl/sdk";
+
+const client = new ClawdeplClient();
+const result = await client.createBot({ name: "my-agent" });
+const bot = client.bot(result.sandbox.id);
+await bot.waitUntilReady();
+
+const session = await bot.createSession("s1");
+const out = await session.exec("echo hello");
+console.log(out.output);
+await session.delete();
+```
+</CodeGroup>
+
+<Info>
+Both SDKs read your token from `~/.clawdepl/credentials.json` automatically -- no extra config needed after `clawdepl login`.
+</Info>

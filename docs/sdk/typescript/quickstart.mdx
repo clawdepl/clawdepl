@@ -1,0 +1,129 @@
+---
+title: TypeScript Quickstart
+description: Get started with the clawdepl TypeScript SDK.
+---
+
+## Installation
+
+```bash
+npm install @clawdepl/sdk
+```
+
+<Info>
+Requires Node.js 18+. Zero runtime dependencies -- uses the built-in `fetch` API.
+</Info>
+
+## Prerequisites
+
+Authenticate with the CLI first so the SDK can find your token:
+
+```bash
+clawdepl login
+```
+
+Or set the `CLAWDEPL_TOKEN` environment variable, or pass a token directly to the constructor.
+
+## Basic example
+
+```typescript
+import { ClawdeplClient } from "@clawdepl/sdk";
+
+const client = new ClawdeplClient();
+
+// Verify your token
+const info = await client.verifyToken();
+console.log(`Logged in as ${info.name} (${info.email})`);
+
+// Create a bot
+const result = await client.createBot({ name: "my-agent" });
+console.log(`Created ${result.bot_name} (sandbox: ${result.sandbox.id})`);
+
+// Wait for it to be ready
+const bot = client.bot(result.sandbox.id);
+await bot.waitUntilReady({
+  onProgress: (state, ready) => console.log(`  ${state}...`),
+});
+
+// Run a command
+const session = await bot.createSession("s1");
+const out = await session.exec("echo 'Hello from the sandbox!'");
+console.log(out.output);
+console.log(`Exit code: ${out.exit_code}`);
+
+// Clean up
+await session.delete();
+await bot.delete();
+```
+
+## Streaming output
+
+```typescript
+import { ClawdeplClient } from "@clawdepl/sdk";
+
+const client = new ClawdeplClient();
+const bot = client.bot("sandbox_abc123");
+const session = await bot.createSession("s1");
+
+for await (const event of session.streamExec("apt update", 120)) {
+  switch (event.type) {
+    case "started":
+      console.log(`Command started (id: ${event.cmd_id})`);
+      break;
+    case "output":
+      process.stdout.write(event.content ?? "");
+      break;
+    case "done":
+      console.log(`\nFinished with exit code ${event.exit_code}`);
+      break;
+    case "error":
+      console.error(`Error: ${event.content}`);
+      break;
+  }
+}
+
+await session.delete();
+```
+
+## Explicit Resource Management
+
+If your environment supports the TC39 Explicit Resource Management proposal:
+
+```typescript
+const bot = client.bot("sandbox_abc123");
+
+await using session = await bot.createSession("s1");
+// Session is automatically deleted when the block exits
+const out = await session.exec("pwd");
+console.log(out.output);
+```
+
+## Error handling
+
+```typescript
+import { ClawdeplClient, AuthError, LimitReachedError } from "@clawdepl/sdk";
+
+try {
+  const client = new ClawdeplClient("bad-token");
+  await client.verifyToken();
+} catch (e) {
+  if (e instanceof AuthError) {
+    console.log("Invalid token");
+  } else if (e instanceof LimitReachedError) {
+    console.log(`Limit: ${e.tier} plan allows ${e.limit}, you have ${e.active}`);
+  }
+}
+```
+
+## Config builder
+
+```typescript
+import { OpenClawConfigBuilder } from "@clawdepl/sdk";
+
+const config = new OpenClawConfigBuilder()
+  .credential("sk-ant-api03-...")
+  .authChoice("api-key")
+  .model("anthropic/claude-sonnet-4-5")
+  .build();
+
+await client.createBot({ name: "my-agent", openclawConfig: config });
+```

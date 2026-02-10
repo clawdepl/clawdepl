@@ -6,17 +6,17 @@ import (
 	"time"
 
 	"github.com/clawdepl/clawdepl/internal/api"
-	"github.com/clawdepl/clawdepl/internal/config"
 	"github.com/spf13/cobra"
 )
 
 var startCmd = &cobra.Command{
-	Use:   "start <sandbox-id>",
+	Use:   "start <sandbox-id|name>",
 	Short: "Start a Molty instance",
-	Long: `Start a stopped Molty instance by sandbox ID.
+	Long: `Start a stopped Molty instance by sandbox ID or instance name.
 
 Examples:
-  clawdepl start sandbox_abc123`,
+  clawdepl start sandbox_abc123
+  clawdepl start wifey`,
 	Args: cobra.ExactArgs(1),
 	RunE: runStart,
 }
@@ -26,13 +26,9 @@ func init() {
 }
 
 func runStart(cmd *cobra.Command, args []string) error {
-	// Check if logged in (or using unsafe token in debug builds)
-	if !HasUnsafeToken() && !config.IsLoggedIn() {
-		fmt.Println("Not logged in. Run 'clawdepl login' first.")
-		return nil
+	if err := requireLogin(); err != nil {
+		return err
 	}
-
-	sandboxID := args[0]
 
 	client, err := api.NewClient(nil)
 	if err != nil {
@@ -41,6 +37,11 @@ func runStart(cmd *cobra.Command, args []string) error {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
 	defer cancel()
+
+	sandboxID, err := resolveSandboxID(ctx, client, args[0])
+	if err != nil {
+		return err
+	}
 
 	result, err := client.StartSandbox(ctx, sandboxID)
 	if err != nil {
@@ -54,7 +55,7 @@ func runStart(cmd *cobra.Command, args []string) error {
 		if msg == "" {
 			msg = result.Error
 		}
-		fmt.Printf("✗ Failed to start '%s': %s\n", sandboxID, msg)
+		return fmt.Errorf("failed to start '%s': %s", sandboxID, msg)
 	}
 	return nil
 }
