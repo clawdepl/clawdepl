@@ -6,7 +6,7 @@
 [![PyPI](https://img.shields.io/pypi/v/clawdepl?logo=python)](https://pypi.org/project/clawdepl/)
 [![CI](https://github.com/clawdepl/clawdepl/actions/workflows/ci.yml/badge.svg)](https://github.com/clawdepl/clawdepl/actions/workflows/ci.yml)
 
-Create and manage [OpenClaw](https://openclaw.io) AI Agent orchestrator instances on hosted infrastructure—instantly.
+Create and manage [OpenClaw](https://openclaw.ai) AI Agent orchestrator instances on hosted infrastructure—instantly.
 
 ## What is OpenClaw?
 
